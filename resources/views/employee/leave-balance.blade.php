@@ -1,4 +1,3 @@
-<!-- resources/views/employee/leave-balance.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,28 +13,35 @@
   --secondary: #708993;
   --accent: #A1C2BD;
   --light: #E7F2EF;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --radius: 14px;
+  --shadow-light: 0 4px 15px rgba(25,24,59,0.06);
+  --shadow-hover: 0 6px 20px rgba(25,24,59,0.12);
+  --transition: 0.25s ease;
 }
 
 /* Body */
 body {
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--primary);
+  font-family: 'Inter', sans-serif;
   background-color: var(--light);
+  color: var(--primary);
   display: flex;
   min-height: 100vh;
 }
 
 /* Sidebar */
 #sidebar {
-  width: 250px;
-  min-height: 100vh;
-  background-color: #fff;
-  border-end: 1px solid var(--accent);
-  padding: 1.5rem;
+  width: 240px;
+  background: #fff;
+  border-right: 1px solid var(--accent);
   position: fixed;
   top: 0;
   left: 0;
+  height: 100vh;
+  padding: 2rem 1.5rem;
   overflow-y: auto;
   transition: transform 0.3s ease;
   z-index: 1000;
@@ -45,11 +51,9 @@ body {
 /* Main Content */
 .main-content {
   flex: 1;
-  margin-left: 250px;
-  transition: margin-left 0.3s ease;
-  display: flex;
-  flex-direction: column;
+  margin-left: 240px;
   padding: 2rem;
+  transition: margin-left 0.3s ease;
 }
 
 /* Topnav */
@@ -57,64 +61,99 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-light);
   margin-bottom: 2rem;
-  background-color: #fff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(25,24,59,0.08);
 }
-.topnav h4 { margin: 0; font-weight: 600; color: var(--primary); }
-.topnav .btn-toggle {
-  background-color: var(--primary);
+.topnav h4 { margin: 0; font-weight: 600; font-size: 1.3rem; }
+.btn-toggle {
+  background: var(--primary);
   color: #fff;
-  border: none;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
+  border: none;
   font-weight: 600;
   cursor: pointer;
+  transition: var(--transition);
 }
-.topnav .btn-toggle:hover { background-color: var(--secondary); }
-
-/* Content Wrapper */
-.content-wrapper { max-width: 1400px; width: 100%; margin: 0 auto; }
+.btn-toggle:hover { background: var(--secondary); }
 
 /* Page Header */
-.dashboard-header { text-align: center; margin-bottom: 3rem; }
-.dashboard-header h2 { font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem; }
-.dashboard-header p { color: var(--secondary); font-size: 1rem; }
-
-/* Placeholder Text */
-.placeholder-text {
+.dashboard-header {
   text-align: center;
-  color: var(--secondary);
-  margin-top: 5rem;
-  font-size: 1rem;
+  margin-bottom: 2.5rem;
+}
+.dashboard-header h2 { font-size: 2rem; font-weight: 700; }
+.dashboard-header p { color: var(--secondary); }
+
+/* Leave Cards */
+.leave-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
 }
 
+.leave-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-light);
+  transition: var(--transition);
+}
+.leave-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+.leave-icon { font-size: 2.2rem; margin-bottom: 0.5rem; display: block; }
+.leave-days { font-size: 1.8rem; font-weight: 700; margin: 0; color: var(--primary); }
+.leave-type { font-weight: 500; color: var(--secondary); font-size: 0.95rem; }
+.leave-submitted { font-size: 0.85rem; color: var(--secondary); margin-top: 0.3rem; }
+
 /* Responsive */
-@media (max-width: 992px) { #sidebar { transform: translateX(-100%); } }
+@media(max-width: 992px) {
+  #sidebar { transform: translateX(-100%); }
+  .main-content { margin-left: 0; padding: 1rem; }
+}
 </style>
 </head>
+
 <body>
 
-<!-- Sidebar -->
 @include('layouts.sidebar')
 
-<!-- Main Content -->
 <div class="main-content" id="mainContent">
   @include('layouts.topnav')
 
   <div class="content-wrapper">
-    <!-- Page Header -->
+
     <div class="dashboard-header">
       <h2>Leave Balance</h2>
-      <p>Check your remaining leave days here</p>
+      <p>Check your remaining leave entitlements</p>
     </div>
 
-    <!-- Placeholder for future leave balance table -->
-    <div class="placeholder-text">
-      <p>Your leave balances will be displayed here once implemented.</p>
+    @php
+      $leaveTypes = [
+        'Vacation' => ['icon'=>'🌴','remaining'=>8,'submitted'=>0,'total'=>8],
+        'Sick' => ['icon'=>'🏥','remaining'=>10,'submitted'=>2,'total'=>10],
+        'Personal' => ['icon'=>'👤','remaining'=>5,'submitted'=>1,'total'=>5],
+        'Emergency' => ['icon'=>'🆘','remaining'=>5,'submitted'=>0,'total'=>5]
+      ];
+    @endphp
+
+    <div class="leave-grid">
+      @foreach($leaveTypes as $label => $data)
+      <div class="leave-card">
+        <span class="leave-icon">{{ $data['icon'] }}</span>
+        <p class="leave-days">{{ $data['remaining'] }}</p>
+        <p class="leave-type">{{ $label }} Leave</p>
+        <small class="leave-submitted">{{ $data['submitted'] }} submitted / {{ $data['total'] }} allowed</small>
+      </div>
+      @endforeach
     </div>
+
   </div>
 </div>
 
@@ -126,7 +165,7 @@ const mainContent = document.getElementById('mainContent');
 
 toggleBtn?.addEventListener('click', () => {
   sidebar.classList.toggle('d-none');
-  mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '250px';
+  mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '240px';
 });
 </script>
 

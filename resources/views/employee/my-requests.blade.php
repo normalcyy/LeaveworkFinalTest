@@ -1,4 +1,3 @@
-<!-- resources/views/employee/my-requests.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,28 +13,35 @@
   --secondary: #708993;
   --accent: #A1C2BD;
   --light: #E7F2EF;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --radius: 14px;
+  --shadow-light: 0 4px 15px rgba(25,24,59,0.06);
+  --shadow-hover: 0 6px 20px rgba(25,24,59,0.12);
+  --transition: 0.25s ease;
 }
 
 /* Body */
 body {
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--primary);
+  font-family: 'Inter', sans-serif;
   background-color: var(--light);
+  color: var(--primary);
   display: flex;
   min-height: 100vh;
 }
 
 /* Sidebar */
 #sidebar {
-  width: 250px;
-  min-height: 100vh;
-  background-color: #fff;
-  border-end: 1px solid var(--accent);
-  padding: 1.5rem;
+  width: 240px;
+  background: #fff;
+  border-right: 1px solid var(--accent);
   position: fixed;
   top: 0;
   left: 0;
+  height: 100vh;
+  padding: 2rem 1.5rem;
   overflow-y: auto;
   transition: transform 0.3s ease;
   z-index: 1000;
@@ -45,11 +51,9 @@ body {
 /* Main Content */
 .main-content {
   flex: 1;
-  margin-left: 250px;
-  transition: margin-left 0.3s ease;
-  display: flex;
-  flex-direction: column;
+  margin-left: 240px;
   padding: 2rem;
+  transition: margin-left 0.3s ease;
 }
 
 /* Topnav */
@@ -57,64 +61,132 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-light);
   margin-bottom: 2rem;
-  background-color: #fff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(25,24,59,0.08);
 }
-.topnav h4 { margin: 0; font-weight: 600; color: var(--primary); }
-.topnav .btn-toggle {
-  background-color: var(--primary);
+.topnav h4 { margin: 0; font-weight: 600; font-size: 1.3rem; }
+.btn-toggle {
+  background: var(--primary);
   color: #fff;
-  border: none;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
+  border: none;
   font-weight: 600;
   cursor: pointer;
+  transition: var(--transition);
 }
-.topnav .btn-toggle:hover { background-color: var(--secondary); }
-
-/* Content Wrapper */
-.content-wrapper { max-width: 1400px; width: 100%; margin: 0 auto; }
+.btn-toggle:hover { background: var(--secondary); }
 
 /* Page Header */
-.dashboard-header { text-align: center; margin-bottom: 3rem; }
-.dashboard-header h2 { font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem; }
-.dashboard-header p { color: var(--secondary); font-size: 1rem; }
-
-/* Placeholder Text */
-.placeholder-text {
+.dashboard-header {
   text-align: center;
-  color: var(--secondary);
-  margin-top: 5rem;
-  font-size: 1rem;
+  margin-bottom: 2.5rem;
 }
+.dashboard-header h2 { font-size: 2rem; font-weight: 700; }
+.dashboard-header p { color: var(--secondary); }
+
+/* Request Table Card */
+.request-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-light);
+  padding: 1.5rem;
+  transition: var(--transition);
+  margin-bottom: 1.5rem;
+}
+.request-card:hover { box-shadow: var(--shadow-hover); }
+
+.request-table th, .request-table td {
+  vertical-align: middle;
+  text-align: center;
+}
+.status-badge {
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+}
+.status-approved { background-color: var(--success); }
+.status-pending { background-color: var(--warning); }
+.status-rejected { background-color: var(--danger); }
 
 /* Responsive */
-@media (max-width: 992px) { #sidebar { transform: translateX(-100%); } }
+@media(max-width: 992px) {
+  #sidebar { transform: translateX(-100%); }
+  .main-content { margin-left: 0; padding: 1rem; }
+}
 </style>
 </head>
+
 <body>
 
-<!-- Sidebar -->
 @include('layouts.sidebar')
 
-<!-- Main Content -->
 <div class="main-content" id="mainContent">
   @include('layouts.topnav')
 
   <div class="content-wrapper">
-    <!-- Page Header -->
     <div class="dashboard-header">
       <h2>My Requests</h2>
-      <p>View all your submitted leave requests here</p>
+      <p>View and monitor all your submitted leave requests</p>
     </div>
 
-    <!-- Placeholder for requests table -->
-    <div class="placeholder-text">
-      <p>Your leave requests will be displayed here once implemented.</p>
-    </div>
+    @php
+      $requests = [
+        ['type'=>'Vacation Leave', 'start'=>'2025-12-01','end'=>'2025-12-05','status'=>'Approved'],
+        ['type'=>'Sick Leave', 'start'=>'2025-11-10','end'=>'2025-11-12','status'=>'Pending'],
+        ['type'=>'Personal Leave', 'start'=>'2025-11-20','end'=>'2025-11-20','status'=>'Rejected']
+      ];
+    @endphp
+
+    @if(count($requests) > 0)
+      <div class="request-card">
+        <table class="table request-table mb-0">
+          <thead>
+            <tr>
+              <th>Leave Type</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($requests as $req)
+            <tr>
+              <td>{{ $req['type'] }}</td>
+              <td>{{ $req['start'] }}</td>
+              <td>{{ $req['end'] }}</td>
+              <td>
+                @php
+                  $statusClass = match($req['status']){
+                    'Approved' => 'status-approved',
+                    'Pending' => 'status-pending',
+                    'Rejected' => 'status-rejected',
+                    default => 'status-pending'
+                  };
+                @endphp
+                <span class="status-badge {{ $statusClass }}">{{ $req['status'] }}</span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary">View</button>
+              </td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    @else
+      <div class="request-card text-center">
+        <h5>No Requests Yet</h5>
+        <p>Your leave requests will appear here once you submit them.</p>
+      </div>
+    @endif
+
   </div>
 </div>
 
@@ -126,7 +198,7 @@ const mainContent = document.getElementById('mainContent');
 
 toggleBtn?.addEventListener('click', () => {
   sidebar.classList.toggle('d-none');
-  mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '250px';
+  mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '240px';
 });
 </script>
 
