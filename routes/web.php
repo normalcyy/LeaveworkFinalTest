@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-
 /*
 |--------------------------------------------------------------------------
 | Auth Routes (UI Only)
@@ -17,23 +16,60 @@ Route::post('/login', function (\Illuminate\Http\Request $request) {
     $email = $request->input('email');
     $password = $request->input('password');
 
+    // Sample users data for different roles
     $users = [
         'emp@test.com' => [
-            'dashboard' => 'employee.dashboard',
+            'id' => 'EMP001',
+            'first_name' => 'John',
+            'middle_name' => 'A.',
+            'last_name' => 'Doe',
+            'email' => 'emp@test.com',
+            'position' => 'Software Engineer',
+            'department' => 'IT',
+            'company' => 'TechCorp',
             'role' => 'employee',
+            'dashboard' => 'employee.dashboard',
         ],
         'admin@test.com' => [
-            'dashboard' => 'admin.dashboard',
+            'id' => 'ADM001',
+            'first_name' => 'Jane',
+            'middle_name' => 'B.',
+            'last_name' => 'Smith',
+            'email' => 'admin@test.com',
+            'position' => 'Team Lead',
+            'department' => 'Operations',
+            'company' => 'BizSolutions',
             'role' => 'admin',
+            'dashboard' => 'admin.dashboard',
         ],
         'su@test.com' => [
-            'dashboard' => 'su.dashboard',
+            'id' => 'SU001',
+            'first_name' => 'Alice',
+            'middle_name' => 'C.',
+            'last_name' => 'Johnson',
+            'email' => 'su@test.com',
+            'position' => 'Superuser',
+            'department' => 'Management',
+            'company' => 'LeaveWork HQ',
             'role' => 'su',
+            'dashboard' => 'su.dashboard',
         ],
     ];
 
     if (isset($users[$email]) && $password === '123456') {
-        session(['user' => $email, 'role' => $users[$email]['role']]);
+        // Store user data in session
+        session([
+            'user' => $users[$email]['email'],
+            'id' => $users[$email]['id'],
+            'first_name' => $users[$email]['first_name'],
+            'middle_name' => $users[$email]['middle_name'],
+            'last_name' => $users[$email]['last_name'],
+            'position' => $users[$email]['position'],
+            'department' => $users[$email]['department'],
+            'company' => $users[$email]['company'],
+            'role' => $users[$email]['role'],
+        ]);
+
         return redirect()->route($users[$email]['dashboard']);
     }
 

@@ -199,9 +199,15 @@
           </div>
         </div>
 
-        <div class="mb-3">
-          <label for="role" class="form-label">Role</label>
-          <input type="text" class="form-control" id="role" value="admin" readonly>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="company" class="form-label">Company</label>
+            <input type="text" class="form-control" id="company" placeholder="Company">
+          </div>
+          <div class="col-md-6">
+            <label for="role" class="form-label">Role</label>
+            <input type="text" class="form-control" id="role" value="admin" readonly>
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary w-100">Create Admin</button>
@@ -231,6 +237,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  // Form submission
   document.getElementById('createAdminForm').addEventListener('submit', function(e){
     e.preventDefault();
     const successModal = new bootstrap.Modal(document.getElementById('successModal'));
@@ -238,6 +245,7 @@
     this.reset();
   });
 
+  // Sidebar toggle
   const toggleBtn = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('sidebar');
   const mainContent = document.getElementById('mainContent');
