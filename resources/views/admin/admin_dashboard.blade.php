@@ -25,32 +25,72 @@
 }
 
 body {
-  background-color: var(--light);
+  margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text-dark);
-}
-
-.content {
-  padding: 2rem 1.5rem;
+  background-color: var(--light);
+  display: flex;
   min-height: 100vh;
-  max-width: 1400px;
-  margin: 0 auto;
 }
 
-.dashboard-header {
-  text-align: center;
-  margin-bottom: 3rem;
+/* Sidebar */
+#sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background-color: #fff;
+  border-end: 1px solid var(--accent);
+  padding: 1.5rem;
+  transition: transform 0.3s ease;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow-y: auto;
+  z-index: 1000;
 }
 
-.dashboard-header h2 {
-  font-size: 2rem;
+#sidebar.d-none {
+  transform: translateX(-100%);
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  margin-left: 250px; /* content stays in place when sidebar visible */
+  transition: margin-left 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+}
+
+/* Topnav */
+.topnav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  background-color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(25,24,59,0.08);
+}
+
+.topnav h4 {
+  margin: 0;
   font-weight: 600;
   color: var(--primary);
 }
 
-.dashboard-header p {
-  color: var(--secondary);
-  font-size: 1rem;
+.topnav .btn-toggle {
+  background-color: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.topnav .btn-toggle:hover {
+  background-color: var(--secondary);
 }
 
 /* Stats Grid */
@@ -116,71 +156,80 @@ body {
 @media (max-width: 768px) {
   .stats-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
   .actions-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .main-content { margin-left: 0; padding: 1rem; }
+  #sidebar { transform: translateX(-100%); }
 }
 </style>
 </head>
 <body>
 
-<div class="container-fluid">
-  <div class="row">
-    {{-- Sidebar placeholder --}}
-    <div class="col-md-2 bg-white p-3" style="min-height:100vh;">
-      <h5>Sidebar</h5>
-      <ul class="nav flex-column">
-        <li class="nav-item"><a class="nav-link" href="#">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Employees</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Requests</a></li>
-      </ul>
+<!-- Sidebar -->
+@include('layouts.sidebar')
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+  @include('layouts.topnav')
+
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <h2>Welcome back, {{ $adminName ?? 'Admin' }}</h2>
+    <p>Here's your department overview</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card employees">
+      <div class="stat-icon">👥</div>
+      <div class="stat-number">12</div>
+      <div class="stat-label">Total Employees</div>
     </div>
+    <div class="stat-card pending">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-number">3</div>
+      <div class="stat-label">Pending Requests</div>
+    </div>
+    <div class="stat-card approved">
+      <div class="stat-icon">✅</div>
+      <div class="stat-number">7</div>
+      <div class="stat-label">Approved Requests</div>
+    </div>
+    <div class="stat-card rejected">
+      <div class="stat-icon">❌</div>
+      <div class="stat-number">2</div>
+      <div class="stat-label">Rejected Requests</div>
+    </div>
+  </div>
 
-    <div class="col-md-10 content">
-      <!-- Header -->
-      <div class="dashboard-header">
-        <h2>Welcome back, {{ $adminName ?? 'Admin' }}</h2>
-        <p>Here's your department overview</p>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats-grid">
-        <div class="stat-card employees">
-          <div class="stat-icon">👥</div>
-          <div class="stat-number">12</div>
-          <div class="stat-label">Total Employees</div>
-        </div>
-        <div class="stat-card pending">
-          <div class="stat-icon">⏳</div>
-          <div class="stat-number">3</div>
-          <div class="stat-label">Pending Requests</div>
-        </div>
-        <div class="stat-card approved">
-          <div class="stat-icon">✅</div>
-          <div class="stat-number">7</div>
-          <div class="stat-label">Approved Requests</div>
-        </div>
-        <div class="stat-card rejected">
-          <div class="stat-icon">❌</div>
-          <div class="stat-number">2</div>
-          <div class="stat-label">Rejected Requests</div>
-        </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="actions-grid">
-        <div class="action-card">
-          <h5>Manage Employees</h5>
-          <p>Add, edit, or remove employee accounts and view profiles</p>
-          <a href="#" class="btn">Manage</a>
-        </div>
-        <div class="action-card">
-          <h5>Review Requests</h5>
-          <p>Approve or reject leave requests from your team</p>
-          <a href="#" class="btn">Review</a>
-        </div>
-      </div>
+  <!-- Quick Actions -->
+  <div class="actions-grid">
+    <div class="action-card">
+      <h5>Manage Employees</h5>
+      <p>Add, edit, or remove employee accounts and view profiles</p>
+      <a href="#" class="btn">Manage</a>
+    </div>
+    <div class="action-card">
+      <h5>Review Requests</h5>
+      <p>Approve or reject leave requests from your team</p>
+      <a href="#" class="btn">Review</a>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  const mainContent = document.getElementById('mainContent');
+
+  toggleBtn?.addEventListener('click', () => {
+    sidebar.classList.toggle('d-none');
+    if(sidebar.classList.contains('d-none')){
+      mainContent.style.marginLeft = '0';
+    } else {
+      mainContent.style.marginLeft = '250px';
+    }
+  });
+</script>
+
 </body>
 </html>
