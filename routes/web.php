@@ -119,6 +119,7 @@ Route::prefix('admin')->group(function () {
 Route::get('/manage-employees', fn() => view('admin.manage-employees')->with(session()->all()))->name('admin.manage_employees');
 Route::get('/add-user', fn() => view('admin.add-user')->with(session()->all()))->name('admin.add_user');
     Route::get('/requests', fn() => view('admin.requests')->with(session()->all()))->name('admin.requests');
+Route::post('/admin/users', [AdminController::class, 'storeUser'])->name('admin.store-user');
 });
 
 /*
