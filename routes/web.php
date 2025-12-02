@@ -1,118 +1,89 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\AdminController;
+
 /*
 |--------------------------------------------------------------------------
-| Auth Routes (UI Only)
+| Auth Routes
 |--------------------------------------------------------------------------
 */
 
 // Login page
 Route::get('/login', fn() => view('auth.login'))->name('login');
 
-// Handle login submission (UI demo only, no real auth)
+// Handle login submission (database-driven)
 Route::post('/login', function (\Illuminate\Http\Request $request) {
-    $email = $request->input('email');
-    $password = $request->input('password');
+    $request->validate([
+        'email'    => 'required|email',
+        'password' => 'required',
+    ]);
 
-    // Sample users data for different roles
-    $users = [
-        'emp@test.com' => [
-            'id' => 'EMP001',
-            'first_name' => 'John',
-            'middle_name' => 'A.',
-            'last_name' => 'Doe',
-            'email' => 'emp@test.com',
-            'position' => 'Software Engineer',
-            'department' => 'IT',
-            'company' => 'TechCorp',
-            'role' => 'employee',
-            'dashboard' => 'employee.dashboard',
-        ],
-        'admin@test.com' => [
-            'id' => 'ADM001',
-            'first_name' => 'Jane',
-            'middle_name' => 'B.',
-            'last_name' => 'Smith',
-            'email' => 'admin@test.com',
-            'position' => 'Team Lead',
-            'department' => 'Operations',
-            'company' => 'BizSolutions',
-            'role' => 'admin',
-            'dashboard' => 'admin.dashboard',
-        ],
-        'su@test.com' => [
-            'id' => 'SU001',
-            'first_name' => 'Alice',
-            'middle_name' => 'C.',
-            'last_name' => 'Johnson',
-            'email' => 'su@test.com',
-            'position' => 'Superuser',
-            'department' => 'Management',
-            'company' => 'LeaveWork HQ',
-            'role' => 'su',
-            'dashboard' => 'su.dashboard',
-        ],
-    ];
+    // Fetch user from the database
+    $user = DB::table('users')->where('email', $request->email)->first();
 
-    if (isset($users[$email]) && $password === '123456') {
-        // Store user data in session
-        session([
-            'user' => $users[$email]['email'],
-            'id' => $users[$email]['id'],
-            'first_name' => $users[$email]['first_name'],
-            'middle_name' => $users[$email]['middle_name'],
-            'last_name' => $users[$email]['last_name'],
-            'position' => $users[$email]['position'],
-            'department' => $users[$email]['department'],
-            'company' => $users[$email]['company'],
-            'role' => $users[$email]['role'],
+    if ($user && Hash::check($request->password, $user->password_hash)) {
+        // Store user info in session
+        Session::put([
+            'user_id'     => $user->id,
+            'emp_id'      => $user->emp_id,
+            'first_name'  => $user->first_name,
+            'middle_name' => $user->middle_name,
+            'last_name'   => $user->last_name,
+            'email'       => $user->email,
+            'role'        => $user->role,
+            'position'    => $user->position,
+            'department'  => $user->department,
+            'company'     => $user->company,
         ]);
 
-        return redirect()->route($users[$email]['dashboard']);
+        // Redirect based on role
+        return match($user->role) {
+            'employee'   => redirect()->route('employee.dashboard'),
+            'admin'      => redirect()->route('admin.dashboard'),
+            'superuser'  => redirect()->route('su.dashboard'),
+            default      => redirect('/'),
+        };
     }
 
-    return redirect()->route('login')->withErrors(['Invalid email or password.']);
-});
+    return back()->withErrors(['email' => 'Invalid email or password.']);
+})->name('login.post'); // <-- fix: define route name
+
+// Logout
+Route::get('/logout', function () {
+    Session::flush();
+    return redirect()->route('login');
+})->name('logout');
 
 // Register page
 Route::get('/register', fn() => view('auth.register'))->name('register');
 
-// Reset Password
+// Reset / Forgot password (UI only)
 Route::get('/reset-password', fn() => view('auth.reset_password'))->name('password.request');
 Route::post('/reset-password', fn() => redirect()->route('login')->with('success', 'Password reset successfully!'))->name('password.update');
-
-// Forgot Password
 Route::get('/forgot-password', fn() => view('auth.forgot_password'))->name('password.forgot');
 
 // Redirect '/' to login
 Route::get('/', fn() => redirect()->route('login'));
 
-// Logout
-Route::get('/logout', function () {
-    Auth::logout();
-    session()->flush();
-    return redirect()->route('login');
-})->name('logout');
-
 /*
 |--------------------------------------------------------------------------
-| Employee Routes (UI Only)
+| Employee Routes
 |--------------------------------------------------------------------------
 */
 Route::prefix('employee')->group(function () {
     Route::get('/dashboard', fn() => view('employee.emp_dashboard')->with(session()->all()))->name('employee.dashboard');
-Route::get('/new-request', fn() => view('employee.new-request')->with(session()->all()))->name('employee.new_request');
-Route::get('/my-requests', fn() => view('employee.my-requests')->with(session()->all()))->name('employee.my_requests');
-Route::get('/leave-balance', fn() => view('employee.leave-balance')->with(session()->all()))->name('employee.leave_balance');
-
+    Route::get('/new-request', fn() => view('employee.new-request')->with(session()->all()))->name('employee.new_request');
+    Route::get('/my-requests', fn() => view('employee.my-requests')->with(session()->all()))->name('employee.my_requests');
+    Route::get('/leave-balance', fn() => view('employee.leave-balance')->with(session()->all()))->name('employee.leave_balance');
 });
 
 /*
 |--------------------------------------------------------------------------
-| Admin Routes (UI Only)
+| Admin Routes
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->group(function () {
@@ -120,16 +91,18 @@ Route::prefix('admin')->group(function () {
     Route::get('/manage-employees', fn() => view('admin.manage-employees')->with(session()->all()))->name('admin.manage_employees');
     Route::get('/add-user', fn() => view('admin.add-user')->with(session()->all()))->name('admin.add_user');
 
-    // EDIT USER UI route
-Route::get('/edit-user', fn() => view('admin.edit-user'))->name('admin.edit_user');
+    // Edit user
+    Route::get('/edit-user', fn() => view('admin.edit-user'))->name('admin.edit_user');
+
+    // Store user via controller
+    Route::post('/users', [AdminController::class, 'storeUser'])->name('admin.store-user');
 
     Route::get('/requests', fn() => view('admin.requests')->with(session()->all()))->name('admin.requests');
-    Route::post('/admin/users', [AdminController::class, 'storeUser'])->name('admin.store-user');
 });
 
 /*
 |--------------------------------------------------------------------------
-| Superuser Routes (UI Only)
+| Superuser Routes
 |--------------------------------------------------------------------------
 */
 Route::prefix('superuser')->group(function () {

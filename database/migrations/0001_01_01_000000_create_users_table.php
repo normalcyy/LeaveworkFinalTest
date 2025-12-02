@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,30 +12,80 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Drop old tables if they exist
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('cache');
+        Schema::dropIfExists('jobs');
+        Schema::dropIfExists('users');
+        Schema::enableForeignKeyConstraints();
+
+        // Create the users table
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
+            $table->integer('id')->primary();
+            $table->string('emp_id', 20);
+            $table->string('first_name', 50);
+            $table->string('middle_name', 50)->nullable();
+            $table->string('last_name', 50);
+            $table->string('email', 100);
+            $table->enum('role', ['employee','admin','superuser'])->default('employee');
+            $table->string('position', 100)->nullable();
+            $table->string('department', 50)->nullable();
+            $table->string('company', 100)->nullable();
+            $table->string('password_hash', 255);
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
 
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
+        // Insert predefined users with the same password hash
+        $passwordHash = '$2y$10$MKmHkhdxuhlG9F9hI7W8AeUp14VKCYiyjOZv3MuYdnlHcFCM8YzH2';
 
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
-        });
+        DB::table('users')->insert([
+            [
+                'id' => 1,
+                'emp_id' => 'ADM001',
+                'first_name' => 'Admin',
+                'middle_name' => 'A.',
+                'last_name' => 'User',
+                'email' => 'admin@test.com',
+                'role' => 'admin',
+                'position' => 'Administrator',
+                'department' => 'IT',
+                'company' => 'UC',
+                'password_hash' => $passwordHash,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'emp_id' => 'SU001',
+                'first_name' => 'Super',
+                'middle_name' => '',
+                'last_name' => 'User',
+                'email' => 'su@test.com',
+                'role' => 'superuser',
+                'position' => 'Supervisor',
+                'department' => 'IT',
+                'company' => 'UC',
+                'password_hash' => $passwordHash,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 3,
+                'emp_id' => 'EMP001',
+                'first_name' => 'Employee',
+                'middle_name' => '',
+                'last_name' => 'Test',
+                'email' => 'emp@test.com',
+                'role' => 'employee',
+                'position' => 'Network Engineer',
+                'department' => 'IT',
+                'company' => 'UC',
+                'password_hash' => $passwordHash,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
     }
 
     /**
@@ -43,7 +94,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
-        Schema::dropIfExists('sessions');
     }
 };

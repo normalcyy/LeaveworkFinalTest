@@ -55,7 +55,7 @@
         </a>
       </li>
 
-    @elseif(isset($role) && $role === 'su')
+    @elseif(isset($role) && $role === 'superuser')
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('superuser/dashboard') ? 'fw-bold text-primary' : '' }}" 
            href="/superuser/dashboard">
