@@ -102,7 +102,6 @@ body {
   gap: 1.5rem;
   margin-bottom: 2.5rem;
 }
-
 .stat-card {
   background: #fff;
   border-radius: var(--radius);
@@ -313,16 +312,12 @@ body {
 </head>
 <body>
 
-<!-- Sidebar -->
 @include('layouts.sidebar')
 
-<!-- Main Content -->
 <div class="main-content" id="mainContent">
   @include('layouts.topnav')
 
   <div class="content-wrapper">
-    
-    <!-- Page Header -->
     <div class="dashboard-header">
       <div>
         <h2>Manage Employees</h2>
@@ -330,7 +325,6 @@ body {
       </div>
     </div>
 
-    <!-- Stats Overview -->
     <div class="stats-grid">
       <div class="stat-card success">
         <span class="stat-icon">👥</span>
@@ -354,7 +348,6 @@ body {
       </div>
     </div>
 
-    <!-- Action Bar -->
     <div class="action-bar">
       <div class="search-box">
         <span class="search-icon">🔍</span>
@@ -366,7 +359,6 @@ body {
       </button>
     </div>
 
-    <!-- Employee Table -->
     <div class="table-container">
       <table class="employee-table">
         <thead>
@@ -394,7 +386,7 @@ body {
           @foreach($employees as $emp)
           <tr>
             <td>
-              <div class="employee-avatar" style="background-color: {{ $emp['color'] }}">
+              <div class="employee-avatar" style="background-color: {{ $emp['color'] }};">
                 {{ strtoupper(substr($emp['name'], 0, 1)) }}
               </div>
               <div class="employee-info">

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\AdminController;
 /*
 |--------------------------------------------------------------------------
 | Auth Routes (UI Only)
@@ -116,10 +117,14 @@ Route::get('/leave-balance', fn() => view('employee.leave-balance')->with(sessio
 */
 Route::prefix('admin')->group(function () {
     Route::get('/dashboard', fn() => view('admin.admin_dashboard')->with(session()->all()))->name('admin.dashboard');
-Route::get('/manage-employees', fn() => view('admin.manage-employees')->with(session()->all()))->name('admin.manage_employees');
-Route::get('/add-user', fn() => view('admin.add-user')->with(session()->all()))->name('admin.add_user');
+    Route::get('/manage-employees', fn() => view('admin.manage-employees')->with(session()->all()))->name('admin.manage_employees');
+    Route::get('/add-user', fn() => view('admin.add-user')->with(session()->all()))->name('admin.add_user');
+
+    // EDIT USER UI route
+Route::get('/edit-user', fn() => view('admin.edit-user'))->name('admin.edit_user');
+
     Route::get('/requests', fn() => view('admin.requests')->with(session()->all()))->name('admin.requests');
-Route::post('/admin/users', [AdminController::class, 'storeUser'])->name('admin.store-user');
+    Route::post('/admin/users', [AdminController::class, 'storeUser'])->name('admin.store-user');
 });
 
 /*
