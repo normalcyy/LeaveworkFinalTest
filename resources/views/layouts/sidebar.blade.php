@@ -3,68 +3,70 @@
 
   <ul class="nav flex-column">
 
-    @if(isset($role) && $role === 'employee')
+    @php $role = session('role'); @endphp
+
+    @if($role === 'employee')
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('employee/dashboard') ? 'fw-bold text-primary' : '' }}" 
-           href="/employee/dashboard">
+           href="{{ url('/employee/dashboard') }}">
           <span class="me-2">🏠</span> Dashboard
         </a>
       </li>
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('employee/new-request') ? 'fw-bold text-primary' : '' }}" 
-           href="/employee/new-request">
+           href="{{ url('/employee/new-request') }}">
           <span class="me-2">🆕</span> New Request
         </a>
       </li>
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('employee/my-requests') ? 'fw-bold text-primary' : '' }}" 
-           href="/employee/my-requests">
+           href="{{ url('/employee/my-requests') }}">
           <span class="me-2">📋</span> My Requests
         </a>
       </li>
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('employee/leave-balance') ? 'fw-bold text-primary' : '' }}" 
-           href="/employee/leave-balance">
+           href="{{ url('/employee/leave-balance') }}">
           <span class="me-2">🧮</span> Leave Balance
         </a>
       </li>
 
-    @elseif(isset($role) && $role === 'admin')
+    @elseif($role === 'admin')
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('admin/dashboard') ? 'fw-bold text-primary' : '' }}" 
-           href="/admin/dashboard">
+           href="{{ url('/admin/dashboard') }}">
           <span class="me-2">🏠</span> Dashboard
         </a>
       </li>
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('admin/manage-employees') ? 'fw-bold text-primary' : '' }}" 
-           href="/admin/manage-employees">
+           href="{{ url('/admin/manage-employees') }}">
           <span class="me-2">👥</span> Manage Employees
         </a>
       </li>
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('admin/add-user') ? 'fw-bold text-primary' : '' }}" 
-           href="/admin/add-user">
+           href="{{ url('/admin/add-user') }}">
           <span class="me-2">➕</span> Add User
         </a>
       </li>
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('admin/requests') ? 'fw-bold text-primary' : '' }}" 
-           href="/admin/requests">
+           href="{{ url('/admin/requests') }}">
           <span class="me-2">📄</span> Requests
         </a>
       </li>
 
-    @elseif(isset($role) && $role === 'superuser')
+    @elseif($role === 'superuser')
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('superuser/dashboard') ? 'fw-bold text-primary' : '' }}" 
-           href="/superuser/dashboard">
+           href="{{ url('/superuser/dashboard') }}">
           <span class="me-2">🏠</span> Dashboard
         </a>
       </li>
       <li class="nav-item mb-2 mt-2">
         <a class="nav-link d-flex align-items-center {{ request()->is('superuser/create-admin') ? 'fw-bold text-primary' : '' }}" 
-           href="/superuser/create-admin">
+           href="{{ url('/superuser/create-admin') }}">
           <span class="me-2">🛠️</span> Create Admin
         </a>
       </li>

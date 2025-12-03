@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Users\UserProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -115,4 +116,7 @@ Route::prefix('superuser')->group(function () {
 | Profile Route (Shared by All Roles)
 |--------------------------------------------------------------------------
 */
-Route::get('/profile', fn() => view('layouts.profile')->with(session()->all()))->name('profile');
+
+
+Route::get('/profile', [UserProfileController::class, 'show'])->name('profile.show');
+Route::post('/profile/update', [UserProfileController::class, 'update'])->name('profile.update');
