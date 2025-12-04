@@ -21,9 +21,13 @@ use App\Http\Controllers\Superuser\SUDashboardController;
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
-// Forgot Password routes
-// Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotPasswordForm'])->name('password.forgot');
-// Route::post('/forgot-password/send', [ForgotPasswordController::class, 'sendResetLink'])->name('password.forgot.send');
+// Show forgot password form
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotPasswordForm'])
+    ->name('forgot.password');
+
+// Handle AJAX reset request
+Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword'])
+    ->name('password.reset.post');
 
 Route::get('/forgot-password', fn() => view('auth.forgot_password'))->name('password.forgot');
 

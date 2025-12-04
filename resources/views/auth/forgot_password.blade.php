@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <!-- SweetAlert2 for better alerts -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
 <style>
 :root {
@@ -211,16 +212,7 @@ body {
     <div class="alert alert-danger">{{ $errors->first() }}</div>
   @endif
 
-  {{-- Information/Instruction Box --}}
-  <div class="instruction-box">
-    <h6><i class="bi bi-info-circle me-2"></i>Password Reset Information</h6>
-    <ul>
-      <li>Enter your registered email address</li>
-      <li>A password reset link will be sent to your email</li>
-      <li>Check your spam folder if you don't see the email</li>
-      <li>Reset links expire after 24 hours for security</li>
-    </ul>
-  </div>
+
 
   <form id="forgotPasswordForm" method="POST">
     @csrf
@@ -232,7 +224,7 @@ body {
     </div>
 
     <button type="submit" class="btn btn-login" id="submitBtn">
-      <span id="btnText">Send Reset Link</span>
+      <span id="btnText">Reset Password</span>
       <span class="spinner-border spinner-border-sm d-none" id="loadingSpinner" role="status"></span>
     </button>
   </form>
@@ -260,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const successMessage = document.getElementById('successMessage');
     const errorMessage = document.getElementById('errorMessage');
     const emailInput = document.getElementById('email');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     // Simple email validation function
     function isValidEmail(email) {
@@ -289,64 +282,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Show loading state
-        btnText.textContent = 'Sending...';
+        btnText.textContent = 'Resetting...';
         loadingSpinner.classList.remove('d-none');
         submitBtn.disabled = true;
         emailInput.disabled = true;
 
-        // Simulate API call delay (3 seconds)
-        setTimeout(function() {
-            // Simulate success response
-            const isSuccess = Math.random() > 0.3; // 70% chance of success
-            
-            if (isSuccess) {
-                showSuccess('Password reset link has been sent to your email. Please check your inbox and follow the instructions.');
-                
-                // Show SweetAlert2 success message
+        try {
+            // Make AJAX request to backend
+            const response = await fetch("{{ route('password.reset.post') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({email: email})
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Success - show SweetAlert
                 Swal.fire({
                     icon: 'success',
-                    title: 'Success!',
+                    title: 'Password Reset Successful!',
                     html: `
                         <div class="text-start">
-                            <p><strong>Password reset link sent!</strong></p>
-                            <p>A password reset link has been sent to:</p>
-                            <p class="text-primary fw-bold">${email}</p>
+                            <p><strong>Password has been reset successfully!</strong></p>
+                            <p>Your new temporary password is:</p>
+                            <div class="text-center my-3">
+                                <div style="
+                                    background: #f8f9fa;
+                                    border: 2px dashed #19183B;
+                                    padding: 1rem;
+                                    border-radius: 8px;
+                                    font-size: 1.5rem;
+                                    font-weight: bold;
+                                    letter-spacing: 2px;
+                                    color: #19183B;
+                                ">
+                                    12345678
+                                </div>
+                            </div>
                             <p class="small text-muted mt-2">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Please check your email and follow the instructions to reset your password.
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                                <strong>Important:</strong> Login immediately with this temporary password and change it in your profile settings.
+                            </p>
+                            <p class="small text-muted">
+                                <i class="bi bi-shield-check me-1"></i>
+                                For security reasons, please do not share this password.
                             </p>
                         </div>
                     `,
                     confirmButtonColor: '#19183B',
-                    confirmButtonText: 'OK',
-                    didClose: () => {
-                        // Optional: Redirect to login page
-                        // window.location.href = '{{ route("login") }}';
+                    confirmButtonText: 'Go to Login',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "{{ route('login') }}";
                     }
                 });
-                
+
                 // Clear form
                 form.reset();
             } else {
-                // Simulate email not found
-                showError('This email address is not registered in our system. Please check and try again.');
+                // Error - show error message
+                showError(data.message || 'An error occurred. Please try again.');
                 
-                // Show SweetAlert2 error
+                // Show SweetAlert error
                 Swal.fire({
                     icon: 'error',
-                    title: 'Email Not Found',
-                    text: 'The email address you entered is not registered in our system.',
+                    title: 'Reset Failed',
+                    text: data.message || 'Unable to reset password. Please try again.',
                     confirmButtonColor: '#19183B'
                 });
             }
-            
+        } catch (error) {
+            // Network error
+            showError('Network error. Please check your connection and try again.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Network Error',
+                text: 'Unable to connect to server. Please try again.',
+                confirmButtonColor: '#19183B'
+            });
+        } finally {
             // Reset button state
-            btnText.textContent = 'Send Reset Link';
+            btnText.textContent = 'Reset Password';
             loadingSpinner.classList.add('d-none');
             submitBtn.disabled = false;
             emailInput.disabled = false;
-            
-        }, 3000); // 3 second delay
+        }
     });
 
     // Helper functions
