@@ -86,6 +86,17 @@ body {
 .dashboard-header h2 { font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem; }
 .dashboard-header p { color: var(--secondary); font-size: 1rem; }
 
+/* User Welcome Badge */
+.welcome-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary) 0%, #2a2860 100%);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
 /* Stats Grid */
 .stats-grid {
   display: grid;
@@ -101,9 +112,22 @@ body {
   text-align: center;
   transition: all 0.3s ease;
 }
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(25, 24, 59, 0.1);
+}
 .stat-card .stat-icon { font-size: 2.5rem; margin-bottom: 1rem; }
-.stat-card .stat-number { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
-.stat-card .stat-label { font-size: 0.95rem; color: var(--secondary); }
+.stat-card .stat-number { 
+  font-size: 2.5rem; 
+  font-weight: 700; 
+  margin-bottom: 0.5rem; 
+  color: var(--primary);
+}
+.stat-card .stat-label { 
+  font-size: 0.95rem; 
+  color: var(--secondary);
+  font-weight: 500;
+}
 
 /* Actions Grid */
 .actions-grid {
@@ -119,6 +143,10 @@ body {
   text-align: center;
   transition: all 0.3s ease;
 }
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(25, 24, 59, 0.1);
+}
 .action-card h5 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
 .action-card p { color: var(--secondary); font-size: 0.95rem; margin-bottom: 1.5rem; }
 .action-card .btn {
@@ -130,6 +158,9 @@ body {
   color: #fff;
   text-decoration: none;
   transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .action-card .btn:hover {
   background-color: var(--secondary);
@@ -138,7 +169,17 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 992px) { #sidebar { transform: translateX(-100%); } }
+@media (max-width: 992px) { 
+  #sidebar { transform: translateX(-100%); }
+  .main-content { margin-left: 0; }
+  .dashboard-header h2 { font-size: 1.75rem; }
+}
+
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .actions-grid { grid-template-columns: 1fr; }
+  .dashboard-header h2 { font-size: 1.5rem; }
+}
 </style>
 </head>
 <body>
@@ -154,7 +195,7 @@ body {
 
     <!-- Dashboard Header -->
     <div class="dashboard-header">
-      <h2>Welcome, Superuser!</h2>
+      <h2>Welcome, {{ session('first_name', 'Superuser') }}!</h2>
       <p>Manage your admins and companies from here</p>
     </div>
 
@@ -162,12 +203,12 @@ body {
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">👤</div>
-        <div class="stat-number">5</div>
+        <div class="stat-number">{{ $adminCount ?? 0 }}</div>
         <div class="stat-label">Admins Created</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">🏢</div>
-        <div class="stat-number">3</div>
+        <div class="stat-number">{{ $companyCount ?? 0 }}</div>
         <div class="stat-label">Companies Registered</div>
       </div>
     </div>
@@ -177,8 +218,9 @@ body {
       <div class="action-card">
         <h5>Create Admin</h5>
         <p>Add a new admin for a company with the necessary credentials.</p>
-           <a href="/superuser/create-admin" class="btn d-flex align-items-center justify-content-center">
-Create Admin</a>
+        <a href="{{ route('su.create_admin') }}" class="btn d-flex align-items-center justify-content-center">
+          Create Admin
+        </a>
       </div>
       <div class="action-card">
         <h5>Create Company</h5>

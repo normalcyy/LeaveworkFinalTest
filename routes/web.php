@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Users\UserProfileController;
+use App\Http\Controllers\Users\AddUserController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Superuser\SUDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,59 +17,29 @@ use App\Http\Controllers\Users\UserProfileController;
 |--------------------------------------------------------------------------
 */
 
-// Login page
-Route::get('/login', fn() => view('auth.login'))->name('login');
+// Login routes
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
-// Handle login submission (database-driven)
-Route::post('/login', function (\Illuminate\Http\Request $request) {
-    $request->validate([
-        'email'    => 'required|email',
-        'password' => 'required',
-    ]);
+// Forgot Password routes
+// Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotPasswordForm'])->name('password.forgot');
+// Route::post('/forgot-password/send', [ForgotPasswordController::class, 'sendResetLink'])->name('password.forgot.send');
 
-    // Fetch user from the database
-    $user = DB::table('users')->where('email', $request->email)->first();
+Route::get('/forgot-password', fn() => view('auth.forgot_password'))->name('password.forgot');
 
-    if ($user && Hash::check($request->password, $user->password_hash)) {
-        // Store user info in session
-        Session::put([
-            'user_id'     => $user->id,
-            'emp_id'      => $user->emp_id,
-            'first_name'  => $user->first_name,
-            'middle_name' => $user->middle_name,
-            'last_name'   => $user->last_name,
-            'email'       => $user->email,
-            'role'        => $user->role,
-            'position'    => $user->position,
-            'department'  => $user->department,
-            'company'     => $user->company,
-        ]);
-
-        // Redirect based on role
-        return match($user->role) {
-            'employee'   => redirect()->route('employee.dashboard'),
-            'admin'      => redirect()->route('admin.dashboard'),
-            'superuser'  => redirect()->route('su.dashboard'),
-            default      => redirect('/'),
-        };
-    }
-
-    return back()->withErrors(['email' => 'Invalid email or password.']);
-})->name('login.post'); // <-- fix: define route name
+// Password reset routes
+Route::get('/password-reset', [LoginController::class, 'showResetPasswordForm'])->name('password.reset.form');
+Route::post('/password-reset', [LoginController::class, 'resetPassword'])->name('password.reset');
 
 // Logout
-Route::get('/logout', function () {
-    Session::flush();
-    return redirect()->route('login');
-})->name('logout');
+Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Register page
 Route::get('/register', fn() => view('auth.register'))->name('register');
 
-// Reset / Forgot password (UI only)
+// Reset password (UI only) - Keep for existing views
 Route::get('/reset-password', fn() => view('auth.reset_password'))->name('password.request');
 Route::post('/reset-password', fn() => redirect()->route('login')->with('success', 'Password reset successfully!'))->name('password.update');
-Route::get('/forgot-password', fn() => view('auth.forgot_password'))->name('password.forgot');
 
 // Redirect '/' to login
 Route::get('/', fn() => redirect()->route('login'));
@@ -98,6 +72,9 @@ Route::prefix('admin')->group(function () {
     // Store user via controller
     Route::post('/users', [AdminController::class, 'storeUser'])->name('admin.store-user');
 
+    Route::post('/admin/add-user', [AddUserController::class, 'createUser'])
+    ->name('admin.add_user.post');
+
     Route::get('/requests', fn() => view('admin.requests')->with(session()->all()))->name('admin.requests');
 });
 
@@ -107,8 +84,14 @@ Route::prefix('admin')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('superuser')->group(function () {
-    Route::get('/dashboard', fn() => view('su.su_dashboard')->with(session()->all()))->name('su.dashboard');
+    // Dashboard with real data using the new controller
+    Route::get('/dashboard', [SUDashboardController::class, 'index'])->name('su.dashboard');
+    
     Route::get('/create-admin', fn() => view('su.create_admin')->with(session()->all()))->name('su.create_admin');
+    
+    // Superuser creating admin
+    Route::post('/superuser/create-admin', [AddUserController::class, 'createUser'])
+        ->name('su.create_admin.post');
 });
 
 /*
@@ -117,6 +100,6 @@ Route::prefix('superuser')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-
 Route::get('/profile', [UserProfileController::class, 'show'])->name('profile.show');
-Route::post('/profile/update', [UserProfileController::class, 'update'])->name('profile.update');
+Route::post('/profile/update-info', [UserProfileController::class, 'updateInfo'])->name('profile.update.info');
+Route::post('/profile/update-password', [UserProfileController::class, 'updatePassword'])->name('profile.update.password');

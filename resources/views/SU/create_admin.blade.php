@@ -1,4 +1,3 @@
-<!-- resources/views/su/create_admin.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +6,7 @@
   <title>Create Admin | LeaveWork</title>
   <link rel="icon" type="image/png" href="{{ asset('assets/leavework_logo.png') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <style>
     :root {
       --primary: #19183B;
@@ -135,13 +135,97 @@
       outline: none;
     }
 
-    /* Modal */
-    .modal-content { border-radius: 15px; }
-    .modal-header { border-bottom: 1px solid var(--border-color); }
-    .modal-body { padding: 2rem 1.5rem; }
-    .modal-footer { border-top: 1px solid var(--border-color); }
+    /* Error messages */
+    .invalid-feedback {
+      display: block;
+      color: #dc3545;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+    .is-invalid {
+      border-color: #dc3545 !important;
+    }
+    .alert {
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .alert-success {
+      background-color: #d1fae5;
+      border-color: #10b981;
+      color: #065f46;
+    }
+    .alert-danger {
+      background-color: #fee2e2;
+      border-color: #ef4444;
+      color: #7f1d1d;
+    }
 
-    @media (max-width: 992px) { #sidebar { transform: translateX(-100%); } }
+    /* Success Modal */
+    .success-modal .modal-content {
+      border-radius: 15px;
+      border: none;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .success-modal .modal-header {
+      border-bottom: none;
+      padding: 2rem 2rem 0.5rem;
+      justify-content: center;
+    }
+    .success-modal .modal-body {
+      padding: 0 2rem 2rem;
+      text-align: center;
+    }
+    .success-modal .modal-footer {
+      border-top: none;
+      padding: 0 2rem 2rem;
+      justify-content: center;
+    }
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background-color: #d1fae5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      color: #10b981;
+      font-size: 2.5rem;
+    }
+
+    /* Form Status */
+    #formStatus {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    #formStatus.success {
+      display: block;
+      background-color: #d1fae5;
+      border: 1px solid #10b981;
+      color: #065f46;
+    }
+    #formStatus.error {
+      display: block;
+      background-color: #fee2e2;
+      border: 1px solid #ef4444;
+      color: #7f1d1d;
+    }
+
+    /* Loading Spinner */
+    .spinner-border {
+      width: 1rem;
+      height: 1rem;
+      margin-right: 0.5rem;
+    }
+
+    @media (max-width: 992px) { 
+      #sidebar { transform: translateX(-100%); }
+      .main-content { margin-left: 0; }
+    }
   </style>
 </head>
 <body>
@@ -157,52 +241,128 @@
 
     <div class="page-header">
       <h3>Create Admin</h3>
-      <a href="{{ url('/superuser/dashboard') }}" class="btn btn-primary">Cancel</a>
+      <a href="{{ route('su.dashboard') }}" class="btn btn-primary">Cancel</a>
     </div>
 
+    <!-- AJAX Form Status Message -->
+    <div id="formStatus"></div>
+
+    <!-- Display Success/Error Messages (for non-AJAX requests) -->
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ session('success') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ session('error') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+
     <div class="card">
-      <form id="createAdminForm">
+      <form action="{{ route('su.create_admin.post') }}" method="POST" id="createAdminForm">
+        @csrf
+        
         <div class="row mb-3">
           <div class="col-md-6">
-            <label for="employee_id" class="form-label">Employee ID *</label>
-            <input type="text" class="form-control" id="employee_id" placeholder="Employee ID" required>
+            <label for="emp_id" class="form-label">Employee ID *</label>
+            <input type="text" class="form-control @error('emp_id') is-invalid @enderror" 
+                   id="emp_id" name="emp_id" 
+                   value="{{ old('emp_id') }}" 
+                   placeholder="Employee ID" required>
+            <div id="emp_id_error" class="invalid-feedback" style="display: none;"></div>
+            @error('emp_id')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
           <div class="col-md-6">
             <label for="email" class="form-label">Email *</label>
-            <input type="email" class="form-control" id="email" placeholder="employee@company.com" required>
+            <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                   id="email" name="email" 
+                   value="{{ old('email') }}" 
+                   placeholder="employee@company.com" required>
+            <div id="email_error" class="invalid-feedback" style="display: none;"></div>
+            @error('email')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-4">
             <label for="first_name" class="form-label">First Name *</label>
-            <input type="text" class="form-control" id="first_name" placeholder="First Name" required>
+            <input type="text" class="form-control @error('first_name') is-invalid @enderror" 
+                   id="first_name" name="first_name" 
+                   value="{{ old('first_name') }}" 
+                   placeholder="First Name" required>
+            <div id="first_name_error" class="invalid-feedback" style="display: none;"></div>
+            @error('first_name')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
           <div class="col-md-4">
             <label for="middle_name" class="form-label">Middle Name</label>
-            <input type="text" class="form-control" id="middle_name" placeholder="Middle Name">
+            <input type="text" class="form-control @error('middle_name') is-invalid @enderror" 
+                   id="middle_name" name="middle_name" 
+                   value="{{ old('middle_name') }}" 
+                   placeholder="Middle Name">
+            <div id="middle_name_error" class="invalid-feedback" style="display: none;"></div>
+            @error('middle_name')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
           <div class="col-md-4">
             <label for="last_name" class="form-label">Last Name *</label>
-            <input type="text" class="form-control" id="last_name" placeholder="Last Name" required>
+            <input type="text" class="form-control @error('last_name') is-invalid @enderror" 
+                   id="last_name" name="last_name" 
+                   value="{{ old('last_name') }}" 
+                   placeholder="Last Name" required>
+            <div id="last_name_error" class="invalid-feedback" style="display: none;"></div>
+            @error('last_name')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-6">
-            <label for="position" class="form-label">Position</label>
-            <input type="text" class="form-control" id="position" placeholder="Position">
+            <label for="position" class="form-label">Position *</label>
+            <input type="text" class="form-control @error('position') is-invalid @enderror" 
+                   id="position" name="position" 
+                   value="{{ old('position') }}" 
+                   placeholder="Position" required>
+            <div id="position_error" class="invalid-feedback" style="display: none;"></div>
+            @error('position')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
           <div class="col-md-6">
-            <label for="department" class="form-label">Department</label>
-            <input type="text" class="form-control" id="department" placeholder="Department">
+            <label for="department" class="form-label">Department *</label>
+            <input type="text" class="form-control @error('department') is-invalid @enderror" 
+                   id="department" name="department" 
+                   value="{{ old('department') }}" 
+                   placeholder="Department" required>
+            <div id="department_error" class="invalid-feedback" style="display: none;"></div>
+            @error('department')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
         </div>
 
-        <div class="row mb-3">
+        <div class="row mb-4">
           <div class="col-md-6">
-            <label for="company" class="form-label">Company</label>
-            <input type="text" class="form-control" id="company" placeholder="Company">
+            <label for="company" class="form-label">Company *</label>
+            <input type="text" class="form-control @error('company') is-invalid @enderror" 
+                   id="company" name="company" 
+                   value="{{ old('company') }}" 
+                   placeholder="Company" required>
+            <div id="company_error" class="invalid-feedback" style="display: none;"></div>
+            @error('company')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
           <div class="col-md-6">
             <label for="role" class="form-label">Role</label>
@@ -210,7 +370,15 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Create Admin</button>
+        <div class="alert alert-info">
+          <strong>Note:</strong> The default password will be set to <strong>123456</strong>. 
+          The admin should change this password upon first login.
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2" id="submitBtn">
+          <span id="submitText">Create Admin</span>
+          <span id="submitSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+        </button>
       </form>
     </div>
 
@@ -218,41 +386,179 @@
 </div>
 
 <!-- Success Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title">Success</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-content success-modal">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        Admin has been created successfully!
+        <div class="success-icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h4 class="mb-3" id="modalTitle">User Created Successfully!</h4>
+        <p class="text-muted mb-4" id="modalMessage">
+          The account has been created successfully. 
+          The default password is <strong>123456</strong>.
+        </p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">OK</button>
+        <a href="{{ route('su.dashboard') }}" class="btn btn-primary px-4">Return to Dashboard</a>
+        <button type="button" class="btn btn-outline-primary px-4" onclick="resetForm()">Create Another Admin</button>
       </div>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  // Form submission
-  document.getElementById('createAdminForm').addEventListener('submit', function(e){
-    e.preventDefault();
-    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-    successModal.show();
-    this.reset();
-  });
-
   // Sidebar toggle
   const toggleBtn = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('sidebar');
   const mainContent = document.getElementById('mainContent');
 
-  toggleBtn?.addEventListener('click', () => {
-    sidebar.classList.toggle('d-none');
-    mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '250px';
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('d-none');
+      mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '250px';
+    });
+  }
+
+  // Auto-hide alerts after 5 seconds
+  document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+      setTimeout(function() {
+        const bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+      }, 5000);
+    });
+
+    // Show success modal if admin was created via non-AJAX
+    const successModal = document.getElementById('successModal');
+    if (successModal && '{{ session("admin_created") }}') {
+      const modal = new bootstrap.Modal(successModal);
+      modal.show();
+    }
+  });
+
+  // AJAX Form Submission
+  $(document).ready(function() {
+    const createAdminForm = $('#createAdminForm');
+    const submitBtn = $('#submitBtn');
+    const submitText = $('#submitText');
+    const submitSpinner = $('#submitSpinner');
+    const formStatus = $('#formStatus');
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+
+    // Store original button text
+    const originalButtonText = submitText.text();
+
+    // Handle form submission
+    createAdminForm.on('submit', function(e) {
+      e.preventDefault();
+
+      // Show loading state
+      submitText.text('Creating...');
+      submitSpinner.removeClass('d-none');
+      submitBtn.prop('disabled', true);
+
+      // Clear previous errors and status
+      clearErrors();
+      formStatus.hide().removeClass('success error');
+
+      // Get form data
+      const formData = $(this).serialize();
+
+      // Send AJAX request
+      $.ajax({
+        url: $(this).attr('action'),
+        type: 'POST',
+        data: formData,
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+          // Reset button state
+          resetButtonState();
+          
+          // Show success modal
+          if (response.success) {
+            // Update modal content
+            $('#modalTitle').text(response.title || 'User Created Successfully!');
+            $('#modalMessage').html(response.message || 
+              'The account has been created successfully. ' +
+              'The default password is <strong>123456</strong>.');
+            
+            // Show success modal
+            successModal.show();
+            
+            // Clear form
+            createAdminForm[0].reset();
+          }
+        },
+        error: function(xhr) {
+          // Reset button state
+          resetButtonState();
+
+          // Handle validation errors
+          if (xhr.status === 422) {
+            const errors = xhr.responseJSON.errors;
+            displayErrors(errors);
+            
+            // Show error status
+            formStatus.text('Please fix the errors below.').addClass('error').show();
+          } else {
+            // Show general error
+            formStatus.text('An error occurred. Please try again.').addClass('error').show();
+          }
+        }
+      });
+    });
+
+    // Clear all error messages
+    function clearErrors() {
+      $('.form-control').removeClass('is-invalid');
+      $('.invalid-feedback').hide().text('');
+    }
+
+    // Display validation errors
+    function displayErrors(errors) {
+      for (const field in errors) {
+        const input = $(`[name="${field}"]`);
+        const errorDiv = $(`#${field}_error`);
+        
+        if (input.length && errorDiv.length) {
+          input.addClass('is-invalid');
+          errorDiv.text(errors[field][0]).show();
+        }
+      }
+    }
+
+    // Reset button to original state
+    function resetButtonState() {
+      submitText.text(originalButtonText);
+      submitSpinner.addClass('d-none');
+      submitBtn.prop('disabled', false);
+    }
+
+    // Function to reset form and hide modal
+    window.resetForm = function() {
+      successModal.hide();
+      createAdminForm[0].reset();
+      clearErrors();
+      formStatus.hide().removeClass('success error');
+      
+      // Focus on first input
+      $('#emp_id').focus();
+    };
+
+    // Clear validation on input change
+    $('.form-control').on('input', function() {
+      $(this).removeClass('is-invalid');
+      $(`#${this.name}_error`).hide();
+    });
   });
 </script>
 

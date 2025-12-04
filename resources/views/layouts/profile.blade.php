@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="{{ asset('assets/leavework_logo.png') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <style>
     :root {
       --primary: #19183B;
@@ -523,26 +523,35 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form id="personalInfoForm" method="POST" action="{{ route('profile.update') }}">
+          <form method="POST" action="{{ route('profile.update.info') }}">
             @csrf
             <div class="mb-3">
               <label for="firstName" class="form-label">First Name</label>
               <input type="text" class="form-control" id="firstName" name="first_name" value="{{ $user->first_name }}" required>
+              @error('first_name')
+              <div class="text-danger mt-1">{{ $message }}</div>
+              @enderror
             </div>
             <div class="mb-3">
               <label for="middleName" class="form-label">Middle Name</label>
               <input type="text" class="form-control" id="middleName" name="middle_name" value="{{ $user->middle_name }}">
+              @error('middle_name')
+              <div class="text-danger mt-1">{{ $message }}</div>
+              @enderror
             </div>
             <div class="mb-3">
               <label for="lastName" class="form-label">Last Name</label>
               <input type="text" class="form-control" id="lastName" name="last_name" value="{{ $user->last_name }}" required>
+              @error('last_name')
+              <div class="text-danger mt-1">{{ $message }}</div>
+              @enderror
             </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
-        </div>
-        </form>
       </div>
     </div>
   </div>
@@ -557,15 +566,17 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form method="POST" action="{{ route('profile.update') }}">
+          <form id="changePasswordForm" method="POST" action="{{ route('profile.update.password') }}">
             @csrf
             <div class="mb-3">
               <label for="currentPassword" class="form-label">Current Password</label>
               <input type="password" class="form-control" id="currentPassword" name="current_password" required>
+              <div id="currentPasswordError" class="text-danger mt-1" style="display: none;"></div>
             </div>
             <div class="mb-3">
               <label for="newPassword" class="form-label">New Password</label>
               <input type="password" class="form-control" id="newPassword" name="password" required>
+              <div id="passwordError" class="text-danger mt-1" style="display: none;"></div>
             </div>
             <div class="mb-3">
               <label for="confirmPassword" class="form-label">Confirm New Password</label>
@@ -573,9 +584,18 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Update Password</button>
+              <button type="submit" class="btn btn-primary" id="updatePasswordBtn">
+                <span id="updatePasswordText">Update Password</span>
+                <span id="updatePasswordSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              </button>
             </div>
           </form>
+
+          <!-- Success Message (initially hidden) -->
+          <div id="passwordSuccessAlert" class="alert alert-success mt-3" style="display: none;">
+            <i class="fas fa-check-circle me-2"></i>
+            <span id="successMessage">Password updated successfully!</span>
+          </div>
         </div>
       </div>
     </div>
@@ -618,6 +638,143 @@
       mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '250px';
     });
   </script>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      const changePasswordForm = $('#changePasswordForm');
+      const updatePasswordBtn = $('#updatePasswordBtn');
+      const updatePasswordText = $('#updatePasswordText');
+      const updatePasswordSpinner = $('#updatePasswordSpinner');
+      const passwordSuccessAlert = $('#passwordSuccessAlert');
+      const changePasswordModal = document.getElementById('changePasswordModal');
+      const modalInstance = bootstrap.Modal.getInstance(changePasswordModal) || new bootstrap.Modal(changePasswordModal);
+
+      // Clear errors when modal is shown
+      $('#changePasswordModal').on('show.bs.modal', function() {
+        clearErrors();
+        passwordSuccessAlert.hide();
+        changePasswordForm.show();
+      });
+
+      // Handle form submission
+      changePasswordForm.on('submit', function(e) {
+        e.preventDefault();
+
+        // Show loading state
+        updatePasswordText.text('Updating...');
+        updatePasswordSpinner.removeClass('d-none');
+        updatePasswordBtn.prop('disabled', true);
+
+        // Clear previous errors
+        clearErrors();
+        passwordSuccessAlert.hide();
+
+        // Get form data
+        const formData = $(this).serialize();
+
+        // Send AJAX request
+        $.ajax({
+          url: $(this).attr('action'),
+          type: 'POST',
+          data: formData,
+          headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+          },
+          success: function(response) {
+            // Show success message
+            passwordSuccessAlert.show();
+            changePasswordForm.hide();
+
+            // Reset button state
+            resetButtonState();
+
+            // Close modal after 2 seconds
+            setTimeout(function() {
+              modalInstance.hide();
+              // Reload page to reflect changes if needed
+              window.location.reload();
+            }, 2000);
+          },
+          error: function(xhr) {
+            // Reset button state
+            resetButtonState();
+
+            // Handle validation errors
+            if (xhr.status === 422) {
+              const errors = xhr.responseJSON.errors;
+              displayErrors(errors);
+            } else {
+              // Show general error
+              $('#currentPasswordError').text('An error occurred. Please try again.').show();
+            }
+          }
+        });
+      });
+
+      // Clear error messages
+      function clearErrors() {
+        $('.text-danger').hide().text('');
+      }
+
+      // Display validation errors
+      function displayErrors(errors) {
+        if (errors.current_password) {
+          $('#currentPasswordError').text(errors.current_password[0]).show();
+        }
+        if (errors.password) {
+          $('#passwordError').text(errors.password[0]).show();
+        }
+      }
+
+      // Reset button to original state
+      function resetButtonState() {
+        updatePasswordText.text('Update Password');
+        updatePasswordSpinner.addClass('d-none');
+        updatePasswordBtn.prop('disabled', false);
+      }
+
+      // Also update the Personal Info Modal to work similarly
+      $('#editPersonalModal form').on('submit', function(e) {
+        e.preventDefault();
+
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const originalText = submitBtn.text();
+
+        // Show loading
+        submitBtn.text('Saving...').prop('disabled', true);
+
+        $.ajax({
+          url: form.attr('action'),
+          type: 'POST',
+          data: form.serialize(),
+          headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+          },
+          success: function(response) {
+            submitBtn.text('Saved!');
+
+            // Close modal after 1.5 seconds
+            setTimeout(function() {
+              bootstrap.Modal.getInstance(document.getElementById('editPersonalModal')).hide();
+              window.location.reload();
+            }, 1500);
+          },
+          error: function(xhr) {
+            submitBtn.text(originalText).prop('disabled', false);
+
+            // Handle errors - you can add error display similar to password form
+            if (xhr.status === 422) {
+              alert('Please check your inputs and try again.');
+            }
+          }
+        });
+      });
+    });
+  </script>
+
+
 </body>
 
 </html>
