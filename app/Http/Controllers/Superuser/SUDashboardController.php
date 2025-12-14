@@ -20,7 +20,7 @@ class SUDashboardController extends Controller
         $adminCount = $this->getAdminCount();
         $companyCount = $this->getCompanyCount();
         
-        return view('SU.su_dashboard', [
+        return view('su.su_dashboard', [
             'adminCount' => $adminCount,
             'companyCount' => $companyCount,
         ]);
