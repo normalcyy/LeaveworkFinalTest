@@ -10,6 +10,8 @@ use App\Http\Controllers\Users\AddUserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Superuser\SUDashboardController;
+use App\Http\Controllers\UserList\UserListController;
+ 
 
 /*
 |--------------------------------------------------------------------------
@@ -60,7 +62,7 @@ Route::prefix('employee')->group(function () {
     Route::get('/leave-balance', fn() => view('employee.leave-balance')->with(session()->all()))->name('employee.leave_balance');
 });
 
-/*
+ /*
 |--------------------------------------------------------------------------
 | Admin Routes
 |--------------------------------------------------------------------------
@@ -80,6 +82,7 @@ Route::prefix('admin')->group(function () {
     ->name('admin.add_user.post');
 
     Route::get('/requests', fn() => view('admin.requests')->with(session()->all()))->name('admin.requests');
+     
 });
 
 /*
@@ -93,8 +96,17 @@ Route::prefix('superuser')->group(function () {
     
     Route::get('/create-admin', fn() => view('su.create_admin')->with(session()->all()))->name('su.create_admin');
     
+    // Admin List - Using UserListController
+    Route::get('/admin-list', [UserListController::class, 'index'])->name('su.admin.list');
+    
+    // Edit Admin
+    Route::get('/admin-list/edit/{id}', [UserListController::class, 'edit'])->name('su.admin.edit');
+    
+    // Update Admin
+    Route::put('/admin-list/update/{id}', [UserListController::class, 'update'])->name('su.admin.update');
+    
     // Superuser creating admin
-    Route::post('/superuser/create-admin', [AddUserController::class, 'createUser'])
+    Route::post('/create-admin', [AddUserController::class, 'createUser'])
         ->name('su.create_admin.post');
 });
 
