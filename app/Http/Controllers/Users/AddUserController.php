@@ -122,13 +122,16 @@ class AddUserController extends Controller
             'first_name' => 'required|string|max:50',
             'middle_name' => 'nullable|string|max:50',
             'last_name' => 'required|string|max:50',
-            'position' => 'required|string|max:100',
             'department' => 'required|string|max:100',
         ];
         
         // Add company validation for superuser only
         if ($currentUser['role'] === 'superuser') {
             $rules['company'] = 'required|string|max:100';
+            // Position is auto-set to "Administrator" for admins, so not required
+        } else {
+            // Position is required when admin creates employee
+            $rules['position'] = 'required|string|max:100';
         }
         
         // Custom error messages
@@ -146,9 +149,6 @@ class AddUserController extends Controller
             'last_name.required' => 'Last name is required.',
             'last_name.string' => 'Last name must be a string.',
             'last_name.max' => 'Last name must not exceed 50 characters.',
-            'position.required' => 'Position is required.',
-            'position.string' => 'Position must be a string.',
-            'position.max' => 'Position must not exceed 100 characters.',
             'department.required' => 'Department is required.',
             'department.string' => 'Department must be a string.',
             'department.max' => 'Department must not exceed 100 characters.',
@@ -158,9 +158,29 @@ class AddUserController extends Controller
             $messages['company.required'] = 'Company name is required for admin creation.';
             $messages['company.string'] = 'Company name must be a string.';
             $messages['company.max'] = 'Company name must not exceed 100 characters.';
+        } else {
+            $messages['position.required'] = 'Position is required.';
+            $messages['position.string'] = 'Position must be a string.';
+            $messages['position.max'] = 'Position must not exceed 100 characters.';
         }
         
         return Validator::make($request->all(), $rules, $messages);
+    }
+    
+    /**
+     * Get list of companies for dropdown
+     */
+    public function getCompanies()
+    {
+        $companies = DB::table('users')
+            ->whereNotNull('company')
+            ->where('company', '!=', '')
+            ->distinct()
+            ->pluck('company')
+            ->sort()
+            ->values();
+        
+        return response()->json(['companies' => $companies]);
     }
     
     /**
@@ -168,12 +188,15 @@ class AddUserController extends Controller
      */
     private function prepareUserData(Request $request, $currentUser)
     {
-        // Determine role and company
+        // Auto-determine role based on current user's role
+        // Superuser creates admin, Admin creates employee
         if ($currentUser['role'] === 'superuser') {
-            $role = 'admin';
+            $role = 'admin'; // Always admin when superuser creates
+            $position = 'Administrator'; // Auto-set position for admin
             $company = $request->company;
         } else {
-            $role = 'employee';
+            $role = 'employee'; // Always employee when admin creates
+            $position = $request->position; // Position required for employees
             $company = $currentUser['company'];
         }
         
@@ -186,7 +209,7 @@ class AddUserController extends Controller
             'middle_name' => $request->middle_name ?? null,
             'last_name' => $request->last_name,
             'role' => $role,
-            'position' => $request->position,
+            'position' => $position,
             'department' => $request->department,
             'company' => $company,
             'must_change_password' => true, // Set to true so user must change password on first login

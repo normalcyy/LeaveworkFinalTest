@@ -398,28 +398,21 @@
           </div>
         </div>
 
-        <!-- Company and Role Fields -->
+        <!-- Company Field (Auto-set, readonly) -->
         <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="company" class="form-label">Company</label>
+          <div class="col-md-12">
+            <label class="form-label">Company</label>
             <input type="text" class="form-control" 
-                   id="company" name="company" 
                    value="{{ session('company') }}" 
-                   placeholder="Company" readonly>
-            <div class="company-info">
+                   readonly>
+            <small class="text-muted">
               <i class="bi bi-building me-1"></i>
-              Using your current company
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label for="role" class="form-label">Role</label>
-            <input type="text" class="form-control" id="role" name="role" value="employee" readonly>
-            <div class="company-info">
-              <i class="bi bi-person-badge me-1"></i>
-              Default role for new users
-            </div>
+              Company is automatically set to your company. Role is automatically set to "employee".
+            </small>
           </div>
         </div>
+        
+        <input type="hidden" name="role" value="employee">
 
         <!-- Available Leaves Section - matches controller's leave balance creation -->
         <div class="leaves-section">

@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <title>Admin | Manage Requests | LeaveWork</title>
 <link rel="icon" type="image/png" href="{{ asset('assets/leavework_logo.png') }}">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -616,46 +617,56 @@ body {
     <div class="stats-grid">
       <div class="stat-card all active" data-filter="all">
         <span class="stat-icon">📋</span>
-        <p class="stat-number">12</p>
+        <p class="stat-number">{{ $totalCount ?? 0 }}</p>
         <p class="stat-label">Total Requests</p>
       </div>
       <div class="stat-card pending" data-filter="pending">
         <span class="stat-icon">⏳</span>
-        <p class="stat-number">5</p>
+        <p class="stat-number">{{ $pendingCount ?? 0 }}</p>
         <p class="stat-label">Pending</p>
       </div>
       <div class="stat-card approved" data-filter="approved">
         <span class="stat-icon">✅</span>
-        <p class="stat-number">6</p>
+        <p class="stat-number">{{ $approvedCount ?? 0 }}</p>
         <p class="stat-label">Approved</p>
       </div>
       <div class="stat-card rejected" data-filter="rejected">
         <span class="stat-icon">❌</span>
-        <p class="stat-number">1</p>
+        <p class="stat-number">{{ $rejectedCount ?? 0 }}</p>
         <p class="stat-label">Rejected</p>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="filter-bar">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search by employee name or department...">
+    <form method="GET" action="{{ route('admin.requests') }}" id="filterForm">
+      <div class="filter-bar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" name="search" id="searchInput" placeholder="Search by employee name or department..." 
+                 value="{{ request('search') }}">
+        </div>
+        <select class="filter-select" name="leave_type" id="leaveTypeFilter">
+          <option value="">All Leave Types</option>
+          <option value="vacation" {{ request('leave_type') == 'vacation' ? 'selected' : '' }}>Vacation</option>
+          <option value="sick" {{ request('leave_type') == 'sick' ? 'selected' : '' }}>Sick Leave</option>
+          <option value="personal" {{ request('leave_type') == 'personal' ? 'selected' : '' }}>Personal</option>
+          <option value="emergency" {{ request('leave_type') == 'emergency' ? 'selected' : '' }}>Emergency</option>
+        </select>
+        <select class="filter-select" name="status" id="statusFilter">
+          <option value="">All Status</option>
+          <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+          <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+          <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+        </select>
+        <select class="filter-select" name="date_filter" id="dateFilter">
+          <option value="">All Dates</option>
+          <option value="today" {{ request('date_filter') == 'today' ? 'selected' : '' }}>Today</option>
+          <option value="week" {{ request('date_filter') == 'week' ? 'selected' : '' }}>This Week</option>
+          <option value="month" {{ request('date_filter') == 'month' ? 'selected' : '' }}>This Month</option>
+        </select>
+        <button type="submit" class="btn-action view">Apply Filters</button>
       </div>
-      <select class="filter-select" id="leaveTypeFilter">
-        <option value="all">All Leave Types</option>
-        <option value="vacation">Vacation</option>
-        <option value="sick">Sick Leave</option>
-        <option value="personal">Personal</option>
-        <option value="emergency">Emergency</option>
-      </select>
-      <select class="filter-select" id="dateFilter">
-        <option value="all">All Dates</option>
-        <option value="today">Today</option>
-        <option value="week">This Week</option>
-        <option value="month">This Month</option>
-      </select>
-    </div>
+    </form>
 
     <!-- Table -->
     <div class="table-container">
@@ -672,72 +683,83 @@ body {
         </thead>
 
         <tbody id="requestsTableBody">
-        @php
-          $requests = [
-            ['id'=>1,'name'=>'John Doe','dept'=>'Engineering','email'=>'john.doe@company.com','type'=>'vacation','icon'=>'🌴','start'=>'Dec 1, 2024','end'=>'Dec 5, 2024','days'=>5,'reason'=>'Family vacation','status'=>'pending'],
-            ['id'=>2,'name'=>'Jane Smith','dept'=>'Marketing','email'=>'jane.smith@company.com','type'=>'sick','icon'=>'🏥','start'=>'Nov 28, 2024','end'=>'Nov 29, 2024','days'=>2,'reason'=>'Medical appointment','status'=>'approved'],
-            ['id'=>3,'name'=>'Mike Johnson','dept'=>'Sales','email'=>'mike.j@company.com','type'=>'personal','icon'=>'👤','start'=>'Dec 10, 2024','end'=>'Dec 12, 2024','days'=>3,'reason'=>'Personal matters','status'=>'pending'],
-            ['id'=>4,'name'=>'Sarah Williams','dept'=>'HR','email'=>'sarah.w@company.com','type'=>'vacation','icon'=>'🌴','start'=>'Nov 20, 2024','end'=>'Nov 27, 2024','days'=>8,'reason'=>'Annual leave','status'=>'approved'],
-            ['id'=>5,'name'=>'David Brown','dept'=>'Engineering','email'=>'david.b@company.com','type'=>'sick','icon'=>'🏥','start'=>'Nov 25, 2024','end'=>'Nov 25, 2024','days'=>1,'reason'=>'Flu symptoms','status'=>'approved'],
-            ['id'=>6,'name'=>'Emily Davis','dept'=>'Design','email'=>'emily.d@company.com','type'=>'emergency','icon'=>'🆘','start'=>'Nov 29, 2024','end'=>'Nov 30, 2024','days'=>2,'reason'=>'Family emergency','status'=>'pending'],
-            ['id'=>7,'name'=>'Robert Taylor','dept'=>'Finance','email'=>'robert.t@company.com','type'=>'vacation','icon'=>'🌴','start'=>'Dec 15, 2024','end'=>'Dec 22, 2024','days'=>8,'reason'=>'Holiday trip','status'=>'pending'],
-            ['id'=>8,'name'=>'Lisa Anderson','dept'=>'Operations','email'=>'lisa.a@company.com','type'=>'personal','icon'=>'👤','start'=>'Nov 26, 2024','end'=>'Nov 26, 2024','days'=>1,'reason'=>'Personal appointment','status'=>'approved'],
-            ['id'=>9,'name'=>'James Wilson','dept'=>'Engineering','email'=>'james.w@company.com','type'=>'sick','icon'=>'🏥','start'=>'Nov 30, 2024','end'=>'Dec 1, 2024','days'=>2,'reason'=>'Doctor consultation','status'=>'rejected'],
-            ['id'=>10,'name'=>'Maria Garcia','dept'=>'Marketing','email'=>'maria.g@company.com','type'=>'vacation','icon'=>'🌴','start'=>'Dec 3, 2024','end'=>'Dec 7, 2024','days'=>5,'reason'=>'Beach vacation','status'=>'pending'],
-            ['id'=>11,'name'=>'Daniel Lee','dept'=>'Sales','email'=>'daniel.l@company.com','type'=>'personal','icon'=>'👤','start'=>'Nov 27, 2024','end'=>'Nov 28, 2024','days'=>2,'reason'=>'Moving house','status'=>'approved'],
-            ['id'=>12,'name'=>'Jennifer Martinez','dept'=>'HR','email'=>'jennifer.m@company.com','type'=>'emergency','icon'=>'🆘','start'=>'Dec 2, 2024','end'=>'Dec 2, 2024','days'=>1,'reason'=>'Urgent family matter','status'=>'pending'],
-          ];
-        @endphp
-
-        @foreach($requests as $req)
-          <tr data-status="{{ $req['status'] }}" data-type="{{ $req['type'] }}">
-            <td>
-              <div class="employee-info-cell">
-                <div class="employee-avatar">
-                  {{ strtoupper(substr($req['name'], 0, 1)) }}
+        @if(isset($leaveRequests) && $leaveRequests->count() > 0)
+          @foreach($leaveRequests as $request)
+            @php
+              $typeIcons = [
+                'vacation' => '🌴',
+                'sick' => '🏥',
+                'personal' => '👤',
+                'emergency' => '🆘'
+              ];
+              $days = $request->start_date->diffInDays($request->end_date) + 1;
+            @endphp
+            <tr data-status="{{ $request->status }}" data-type="{{ $request->leave_type }}">
+              <td>
+                <div class="employee-info-cell">
+                  <div class="employee-avatar">
+                    {{ strtoupper(substr($request->user->first_name, 0, 1)) }}
+                  </div>
+                  <div class="employee-details">
+                    <p class="employee-name">{{ $request->user->first_name }} {{ $request->user->last_name }}</p>
+                    <p class="employee-dept">{{ $request->user->department }}</p>
+                  </div>
                 </div>
-                <div class="employee-details">
-                  <p class="employee-name">{{ $req['name'] }}</p>
-                  <p class="employee-dept">{{ $req['dept'] }}</p>
+              </td>
+
+              <td>
+                <span class="leave-type-badge {{ $request->leave_type }}">
+                  {{ $typeIcons[$request->leave_type] ?? '' }} {{ ucfirst($request->leave_type) }}
+                </span>
+              </td>
+
+              <td>
+                <div class="date-info">
+                  <span class="date-range">{{ $request->start_date->format('M d, Y') }} → {{ $request->end_date->format('M d, Y') }}</span>
+                  <span class="date-duration">{{ $days }} day(s)</span>
                 </div>
-              </div>
+              </td>
+
+              <td>{{ \Illuminate\Support\Str::limit($request->reason, 50) }}</td>
+
+              <td>
+                <span class="status-badge {{ $request->status }}">
+                  {{ ucfirst($request->status) }}
+                </span>
+              </td>
+
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-action view" onclick="viewRequest({{ $request->id }})">👁 View</button>
+                  @if($request->status == 'pending')
+                    <button class="btn-action approve" onclick="approveRequest({{ $request->id }})">✔ Approve</button>
+                    <button class="btn-action reject" onclick="rejectRequest({{ $request->id }})">✖ Reject</button>
+                  @else
+                    <span class="text-muted">Processed</span>
+                  @endif
+                </div>
+              </td>
+
+            </tr>
+          @endforeach
+        @else
+          <tr>
+            <td colspan="6" class="text-center py-4">
+              <p>No leave requests found.</p>
             </td>
-
-            <td>
-              <span class="leave-type-badge {{ $req['type'] }}">
-                {{ $req['icon'] }} {{ ucfirst($req['type']) }}
-              </span>
-            </td>
-
-            <td>
-              <div class="date-info">
-                <span class="date-range">{{ $req['start'] }} → {{ $req['end'] }}</span>
-                <span class="date-duration">{{ $req['days'] }} day(s)</span>
-              </div>
-            </td>
-
-            <td>{{ $req['reason'] }}</td>
-
-            <td>
-              <span class="status-badge {{ $req['status'] }}">
-                {{ ucfirst($req['status']) }}
-              </span>
-            </td>
-
-            <td>
-              <div class="action-buttons">
-                <button class="btn-action view">👁 View</button>
-                <button class="btn-action approve">✔ Approve</button>
-                <button class="btn-action reject">✖ Reject</button>
-              </div>
-            </td>
-
           </tr>
-        @endforeach
+        @endif
 
         </tbody>
       </table>
     </div>
+
+    <!-- Pagination -->
+    @if(isset($leaveRequests) && $leaveRequests->hasPages())
+      <div class="mt-4">
+        {{ $leaveRequests->links() }}
+      </div>
+    @endif
 
   </div>
 </div>
@@ -773,12 +795,123 @@ toggleBtn?.addEventListener('click', () => {
   }
 });
 
+let currentRequestId = null;
+
 function toggleModal(content = null) {
   const modal = document.getElementById("modalOverlay");
   const body = document.getElementById("modalBody");
 
   if (content) body.innerHTML = content;
   modal.classList.toggle("active");
+}
+
+function viewRequest(id) {
+  currentRequestId = id;
+  fetch(`/admin/requests/${id}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const request = data.request;
+        const user = data.user;
+        const days = data.days;
+        
+        const content = `
+          <div class="request-details">
+            <h4>Employee Information</h4>
+            <p><strong>Name:</strong> ${user.first_name} ${user.last_name}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Department:</strong> ${user.department}</p>
+            <p><strong>Position:</strong> ${user.position}</p>
+            
+            <h4 class="mt-3">Leave Request Details</h4>
+            <p><strong>Leave Type:</strong> ${request.leave_type.charAt(0).toUpperCase() + request.leave_type.slice(1)}</p>
+            <p><strong>Priority:</strong> ${request.priority.charAt(0).toUpperCase() + request.priority.slice(1)}</p>
+            <p><strong>Start Date:</strong> ${new Date(request.start_date).toLocaleDateString()}</p>
+            <p><strong>End Date:</strong> ${new Date(request.end_date).toLocaleDateString()}</p>
+            <p><strong>Duration:</strong> ${days} day(s)</p>
+            <p><strong>Reason:</strong> ${request.reason}</p>
+            ${request.message ? `<p><strong>Additional Message:</strong> ${request.message}</p>` : ''}
+            ${request.emergency_contact ? `<p><strong>Emergency Contact:</strong> ${request.emergency_contact}</p>` : ''}
+            ${request.handover_to ? `<p><strong>Handover To:</strong> ${request.handover_to}</p>` : ''}
+            <p><strong>Status:</strong> <span class="status-badge ${request.status}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</span></p>
+            <p><strong>Submitted:</strong> ${new Date(request.created_at).toLocaleString()}</p>
+          </div>
+        `;
+        toggleModal(content);
+        
+        // Update modal action buttons
+        const approveBtn = document.querySelector('.modal-btn.approve');
+        const rejectBtn = document.querySelector('.modal-btn.reject');
+        
+        if (request.status === 'pending') {
+          approveBtn.style.display = 'inline-block';
+          rejectBtn.style.display = 'inline-block';
+          approveBtn.onclick = () => approveRequest(id);
+          rejectBtn.onclick = () => rejectRequest(id);
+        } else {
+          approveBtn.style.display = 'none';
+          rejectBtn.style.display = 'none';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Failed to load request details');
+    });
+}
+
+function approveRequest(id) {
+  if (!confirm('Are you sure you want to approve this leave request?')) {
+    return;
+  }
+  
+  fetch(`/admin/requests/${id}/approve`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert(data.error || 'Failed to approve request');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Failed to approve request');
+    });
+}
+
+function rejectRequest(id) {
+  if (!confirm('Are you sure you want to reject this leave request?')) {
+    return;
+  }
+  
+  fetch(`/admin/requests/${id}/reject`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert(data.error || 'Failed to reject request');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Failed to reject request');
+    });
 }
 </script>
 

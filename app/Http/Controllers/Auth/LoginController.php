@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\PasswordReset;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Carbon\Carbon;
 
 class LoginController extends Controller
 {
@@ -83,8 +86,37 @@ class LoginController extends Controller
         return back()->withErrors(['email' => 'Invalid credentials']);
     }
 
-    public function showResetPasswordForm()
+    public function showResetPasswordForm(Request $request)
     {
+        // Check if token is provided (for forgot password flow)
+        if ($request->has('token') && $request->has('email')) {
+            $token = $request->token;
+            $email = $request->email;
+            
+            // Verify token
+            $user = User::where('email', $email)->first();
+            if (!$user) {
+                return redirect()->route('login')->withErrors(['email' => 'Invalid email address.']);
+            }
+            
+            $passwordReset = PasswordReset::where('user_id', $user->id)
+                ->where('used', false)
+                ->where('expires_at', '>', Carbon::now())
+                ->latest()
+                ->first();
+            
+            if (!$passwordReset || !Hash::check($token, $passwordReset->reset_token)) {
+                return redirect()->route('login')->withErrors(['token' => 'Invalid or expired reset token.']);
+            }
+            
+            // Store user ID in session for password reset
+            Session::put('reset_user_id', $user->id);
+            Session::put('reset_token_id', $passwordReset->id);
+            
+            return view('auth.reset_password');
+        }
+        
+        // Check if session has reset_user_id (for must_change_password flow)
         if (!Session::has('reset_user_id')) {
             return redirect()->route('login');
         }
@@ -138,15 +170,22 @@ class LoginController extends Controller
         }
 
         // 5. Update password
-        DB::table('users')
-            ->where('id', $userId)
-            ->update([
+        $user = User::find($userId);
+        if ($user) {
+            $user->update([
                 'password_hash' => Hash::make($request->password),
                 'must_change_password' => false,
-                'updated_at' => now(),
             ]);
+        }
 
-        // 6. Clear the session
+        // 6. Mark password reset token as used if it exists
+        if (Session::has('reset_token_id')) {
+            $tokenId = Session::get('reset_token_id');
+            PasswordReset::where('id', $tokenId)->update(['used' => true]);
+            Session::forget('reset_token_id');
+        }
+
+        // 7. Clear the session
         Session::forget('reset_user_id');
         
         // 7. Return response based on request type

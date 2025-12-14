@@ -76,6 +76,18 @@
         <span class="me-2">📋</span> Admins List
       </a>
     </li>
+    <li class="nav-item mb-2 mt-2">
+      <a class="nav-link d-flex align-items-center {{ request()->is('superuser/manage-admins') ? 'fw-bold text-primary' : '' }}"
+        href="{{ url('/superuser/manage-admins') }}">
+        <span class="me-2">⚙️</span> Manage Admins
+      </a>
+    </li>
+    <li class="nav-item mb-2 mt-2">
+      <a class="nav-link d-flex align-items-center {{ request()->is('superuser/create-company') ? 'fw-bold text-primary' : '' }}"
+        href="{{ url('/superuser/create-company') }}">
+        <span class="me-2">🏢</span> Create Company
+      </a>
+    </li>
 
     @endif
 

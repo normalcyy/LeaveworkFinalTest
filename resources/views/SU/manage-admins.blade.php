@@ -1,11 +1,11 @@
-<!-- resources/views/admin/manage-employees.blade.php -->
+<!-- resources/views/su/manage-admins.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>Admin | Manage Employees | LeaveWork</title>
+<title>Superuser | Manage Admins | LeaveWork</title>
 <link rel="icon" type="image/png" href="{{ asset('assets/leavework_logo.png') }}">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -190,13 +190,15 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  text-decoration: none;
 }
 .btn-primary-custom:hover {
   background: var(--secondary);
   transform: translateY(-2px);
+  color: #fff;
 }
 
-/* Employee Table */
+/* Admin Table */
 .table-container {
   background: #fff;
   border-radius: var(--radius);
@@ -204,33 +206,33 @@ body {
   overflow: hidden;
 }
 
-.employee-table {
+.admin-table {
   width: 100%;
   margin: 0;
 }
-.employee-table thead {
+.admin-table thead {
   background: var(--primary);
   color: #fff;
 }
-.employee-table thead th {
+.admin-table thead th {
   padding: 1rem 1.5rem;
   font-weight: 600;
   text-align: left;
   border: none;
 }
-.employee-table tbody tr {
+.admin-table tbody tr {
   border-bottom: 1px solid var(--accent);
   transition: var(--transition);
 }
-.employee-table tbody tr:hover {
+.admin-table tbody tr:hover {
   background-color: var(--light);
 }
-.employee-table tbody td {
+.admin-table tbody td {
   padding: 1rem 1.5rem;
   vertical-align: middle;
 }
 
-.employee-avatar {
+.admin-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -242,16 +244,16 @@ body {
   margin-right: 0.75rem;
 }
 
-.employee-info {
+.admin-info {
   display: inline-block;
   vertical-align: middle;
 }
-.employee-name {
+.admin-name {
   font-weight: 600;
   color: var(--primary);
   margin: 0;
 }
-.employee-email {
+.admin-email {
   font-size: 0.85rem;
   color: var(--secondary);
   margin: 0;
@@ -264,8 +266,6 @@ body {
   font-weight: 600;
 }
 .badge-success { background: #d1fae5; color: #065f46; }
-.badge-warning { background: #fef3c7; color: #92400e; }
-.badge-danger { background: #fee2e2; color: #991b1b; }
 
 .action-buttons {
   display: flex;
@@ -321,8 +321,8 @@ body {
   <div class="content-wrapper">
     <div class="dashboard-header">
       <div>
-        <h2>Manage Employees</h2>
-        <p>View and manage all employees in the system</p>
+        <h2>Manage Admins</h2>
+        <p>View and manage all administrators in the system</p>
       </div>
     </div>
 
@@ -343,106 +343,80 @@ body {
     <div class="stats-grid">
       <div class="stat-card success">
         <span class="stat-icon">👥</span>
-        <p class="stat-number">{{ $totalEmployees ?? 0 }}</p>
-        <p class="stat-label">Total Employees</p>
+        <p class="stat-number">{{ $totalAdmins ?? 0 }}</p>
+        <p class="stat-label">Total Admins</p>
       </div>
       <div class="stat-card info">
-        <span class="stat-icon">✅</span>
-        <p class="stat-number">{{ $activeCount ?? 0 }}</p>
-        <p class="stat-label">Active</p>
-      </div>
-      <div class="stat-card warning">
-        <span class="stat-icon">🏖️</span>
-        <p class="stat-number">{{ $onLeaveCount ?? 0 }}</p>
-        <p class="stat-label">On Leave</p>
-      </div>
-      <div class="stat-card danger">
-        <span class="stat-icon">⏸️</span>
-        <p class="stat-number">{{ $inactiveCount ?? 0 }}</p>
-        <p class="stat-label">Inactive</p>
+        <span class="stat-icon">🏢</span>
+        <p class="stat-number">{{ $totalCompanies ?? 0 }}</p>
+        <p class="stat-label">Companies</p>
       </div>
     </div>
 
     <div class="action-bar">
-      <form method="GET" action="{{ route('admin.manage_employees') }}" class="search-box" style="display: flex; flex: 1; max-width: 400px;">
+      <form method="GET" action="{{ route('su.manage_admins') }}" class="search-box" style="display: flex; flex: 1; max-width: 400px;">
         <span class="search-icon">🔍</span>
-        <input type="text" name="search" placeholder="Search employees by name, email, or department..." 
+        <input type="text" name="search" placeholder="Search admins by name, email, or company..." 
                value="{{ request('search') }}" style="flex: 1;">
         @if(request('search'))
-          <a href="{{ route('admin.manage_employees') }}" class="btn btn-sm btn-secondary ms-2">Clear</a>
+          <a href="{{ route('su.manage_admins') }}" class="btn btn-sm btn-secondary ms-2">Clear</a>
         @endif
       </form>
-      <a href="{{ route('admin.add_user') }}" class="btn-primary-custom" style="text-decoration: none;">
+      <a href="{{ route('su.create_admin') }}" class="btn-primary-custom">
         <span>➕</span>
-        Add New Employee
+        Create New Admin
       </a>
     </div>
 
     <div class="table-container">
-      <table class="employee-table">
+      <table class="admin-table">
         <thead>
           <tr>
-            <th>Employee</th>
+            <th>Admin</th>
+            <th>Company</th>
             <th>Department</th>
-            <th>Position</th>
-            <th>Status</th>
             <th>Join Date</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          @if(isset($employees) && $employees->count() > 0)
-            @foreach($employees as $employee)
+          @if(isset($admins) && $admins->count() > 0)
+            @foreach($admins as $admin)
               @php
-                // Generate color based on employee ID for consistent avatar colors
+                // Generate color based on admin ID for consistent avatar colors
                 $colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#ec4899', '#06b6d4', '#f97316'];
-                $colorIndex = $employee->id % count($colors);
+                $colorIndex = $admin->id % count($colors);
                 $avatarColor = $colors[$colorIndex];
-                
-                // Check if employee is on leave
-                $isOnLeave = \App\Models\LeaveRequest::where('user_id', $employee->id)
-                    ->where('status', 'approved')
-                    ->where('start_date', '<=', now())
-                    ->where('end_date', '>=', now())
-                    ->exists();
-                
-                $status = $isOnLeave ? 'On Leave' : 'Active';
-                $statusClass = $isOnLeave ? 'warning' : 'success';
               @endphp
               <tr>
                 <td>
-                  <div class="employee-avatar" style="background-color: {{ $avatarColor }};">
-                    {{ strtoupper(substr($employee->first_name, 0, 1)) }}
+                  <div class="admin-avatar" style="background-color: {{ $avatarColor }};">
+                    {{ strtoupper(substr($admin->first_name, 0, 1)) }}
                   </div>
-                  <div class="employee-info">
-                    <p class="employee-name">{{ $employee->first_name }} {{ $employee->middle_name }} {{ $employee->last_name }}</p>
-                    <p class="employee-email">{{ $employee->email }}</p>
-                    <small class="text-muted">ID: {{ $employee->emp_id }}</small>
+                  <div class="admin-info">
+                    <p class="admin-name">{{ $admin->first_name }} {{ $admin->middle_name }} {{ $admin->last_name }}</p>
+                    <p class="admin-email">{{ $admin->email }}</p>
+                    <small class="text-muted">ID: {{ $admin->emp_id }}</small>
                   </div>
                 </td>
-                <td>{{ $employee->department ?? 'N/A' }}</td>
-                <td>{{ $employee->position ?? 'N/A' }}</td>
-                <td>
-                  <span class="badge badge-{{ $statusClass }}">
-                    {{ $status }}
-                  </span>
-                </td>
-                <td>{{ $employee->created_at->format('M d, Y') }}</td>
+                <td>{{ $admin->company ?? 'N/A' }}</td>
+                <td>{{ $admin->department ?? 'N/A' }}</td>
+                <td>{{ $admin->created_at->format('M d, Y') }}</td>
                 <td>
                   <div class="action-buttons">
-                    <a href="{{ route('admin.employees.edit', $employee->id) }}" class="btn-icon edit" title="Edit">✏️</a>
-                    <button class="btn-icon delete" title="Delete" onclick="deleteEmployee({{ $employee->id }}, '{{ $employee->first_name }} {{ $employee->last_name }}')">🗑️</button>
+                    <a href="{{ route('su.manage_admins.edit', $admin->id) }}" class="btn-icon edit" title="Edit">✏️</a>
+                    <button class="btn-icon delete" title="Delete" onclick="deleteAdmin({{ $admin->id }}, '{{ $admin->first_name }} {{ $admin->last_name }}')">🗑️</button>
                   </div>
                 </td>
               </tr>
             @endforeach
           @else
             <tr>
-              <td colspan="6" class="text-center py-4">
-                <p>No employees found.</p>
-                <a href="{{ route('admin.add_user') }}" class="btn-primary-custom" style="text-decoration: none; display: inline-flex; margin-top: 1rem;">
+              <td colspan="5" class="text-center py-4">
+                <p>No admins found.</p>
+                <a href="{{ route('su.create_admin') }}" class="btn-primary-custom" style="display: inline-flex; margin-top: 1rem;">
                   <span>➕</span>
-                  Add Your First Employee
+                  Create Your First Admin
                 </a>
               </td>
             </tr>
@@ -452,9 +426,9 @@ body {
     </div>
 
     <!-- Pagination -->
-    @if(isset($employees) && $employees->hasPages())
+    @if(isset($admins) && $admins->hasPages())
       <div class="mt-4">
-        {{ $employees->links() }}
+        {{ $admins->links() }}
       </div>
     @endif
 
@@ -472,13 +446,13 @@ toggleBtn?.addEventListener('click', () => {
   mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '240px';
 });
 
-// Delete employee function
-function deleteEmployee(id, name) {
-  if (!confirm(`Are you sure you want to delete employee "${name}"?\n\nThis action cannot be undone.`)) {
+// Delete admin function
+function deleteAdmin(id, name) {
+  if (!confirm(`Are you sure you want to delete admin "${name}"?\n\nThis action cannot be undone.`)) {
     return;
   }
 
-  fetch(`/admin/employees/${id}`, {
+  fetch(`/superuser/manage-admins/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -491,15 +465,16 @@ function deleteEmployee(id, name) {
         alert(data.message);
         location.reload();
       } else {
-        alert(data.error || 'Failed to delete employee');
+        alert(data.error || 'Failed to delete admin');
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('Failed to delete employee. Please try again.');
+      alert('Failed to delete admin. Please try again.');
     });
 }
 </script>
 
 </body>
 </html>
+

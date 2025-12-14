@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <title>Admin Dashboard | LeaveWork</title>
 <link rel="icon" type="image/png" href="{{ asset('assets/leavework_logo.png') }}">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -170,9 +171,16 @@ body {
 <div class="main-content" id="mainContent">
   @include('layouts.topnav')
 
+  @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ session('success') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
   <!-- Dashboard Header -->
   <div class="dashboard-header">
-    <h2>Welcome back, {{ $adminName ?? 'Admin' }}</h2>
+    <h2>Welcome back, {{ session('first_name') }} {{ session('last_name') }}</h2>
     <p>Here's your department overview</p>
   </div>
 
@@ -180,37 +188,74 @@ body {
   <div class="stats-grid">
     <div class="stat-card employees">
       <div class="stat-icon">👥</div>
-      <div class="stat-number">12</div>
+      <div class="stat-number">{{ $totalEmployees ?? 0 }}</div>
       <div class="stat-label">Total Employees</div>
     </div>
     <div class="stat-card pending">
       <div class="stat-icon">⏳</div>
-      <div class="stat-number">3</div>
+      <div class="stat-number">{{ $pendingRequests ?? 0 }}</div>
       <div class="stat-label">Pending Requests</div>
     </div>
     <div class="stat-card approved">
       <div class="stat-icon">✅</div>
-      <div class="stat-number">7</div>
-      <div class="stat-label">Approved Requests</div>
+      <div class="stat-number">{{ $approvedThisMonth ?? 0 }}</div>
+      <div class="stat-label">Approved This Month</div>
     </div>
     <div class="stat-card rejected">
       <div class="stat-icon">❌</div>
-      <div class="stat-number">2</div>
-      <div class="stat-label">Rejected Requests</div>
+      <div class="stat-number">{{ $rejectedThisMonth ?? 0 }}</div>
+      <div class="stat-label">Rejected This Month</div>
     </div>
   </div>
 
+  <!-- Recent Requests -->
+  @if(isset($recentRequests) && $recentRequests->count() > 0)
+    <div class="mt-4">
+      <h5 class="mb-3">Recent Leave Requests</h5>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Leave Type</th>
+                  <th>Dates</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($recentRequests as $request)
+                  <tr>
+                    <td>{{ $request->user->first_name }} {{ $request->user->last_name }}</td>
+                    <td>{{ ucfirst($request->leave_type) }}</td>
+                    <td>{{ $request->start_date->format('M d') }} - {{ $request->end_date->format('M d, Y') }}</td>
+                    <td>
+                      <span class="badge bg-{{ $request->status == 'approved' ? 'success' : ($request->status == 'rejected' ? 'danger' : 'warning') }}">
+                        {{ ucfirst($request->status) }}
+                      </span>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endif
+
   <!-- Quick Actions -->
-  <div class="actions-grid">
+  <div class="actions-grid mt-4">
     <div class="action-card">
       <h5>Manage Employees</h5>
       <p>Add, edit, or remove employee accounts and view profiles</p>
-      <a href="#" class="btn">Manage</a>
+      <a href="{{ route('admin.manage_employees') }}" class="btn">Manage</a>
     </div>
     <div class="action-card">
       <h5>Review Requests</h5>
       <p>Approve or reject leave requests from your team</p>
-      <a href="#" class="btn">Review</a>
+      <a href="{{ route('admin.requests') }}" class="btn">Review</a>
     </div>
   </div>
 </div>

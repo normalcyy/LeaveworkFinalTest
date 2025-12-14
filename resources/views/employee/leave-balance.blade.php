@@ -136,23 +136,45 @@ body {
 
     @php
       $leaveTypes = [
-        'Vacation' => ['icon'=>'🌴','remaining'=>8,'submitted'=>0,'total'=>8],
-        'Sick' => ['icon'=>'🏥','remaining'=>10,'submitted'=>2,'total'=>10],
-        'Personal' => ['icon'=>'👤','remaining'=>5,'submitted'=>1,'total'=>5],
-        'Emergency' => ['icon'=>'🆘','remaining'=>5,'submitted'=>0,'total'=>5]
+        'vacation' => ['icon'=>'🌴','label'=>'Vacation'],
+        'sick' => ['icon'=>'🏥','label'=>'Sick'],
+        'personal' => ['icon'=>'👤','label'=>'Personal'],
+        'emergency' => ['icon'=>'🆘','label'=>'Emergency']
       ];
     @endphp
 
-    <div class="leave-grid">
-      @foreach($leaveTypes as $label => $data)
-      <div class="leave-card">
-        <span class="leave-icon">{{ $data['icon'] }}</span>
-        <p class="leave-days">{{ $data['remaining'] }}</p>
-        <p class="leave-type">{{ $label }} Leave</p>
-        <small class="leave-submitted">{{ $data['submitted'] }} submitted / {{ $data['total'] }} allowed</small>
+    @if(isset($leaveData))
+      <div class="leave-grid">
+        @foreach($leaveTypes as $type => $info)
+          @php
+            $data = $leaveData[$type] ?? ['total' => 0, 'used' => 0, 'remaining' => 0, 'submitted' => 0];
+            $percentage = $data['total'] > 0 ? ($data['remaining'] / $data['total']) * 100 : 0;
+          @endphp
+          <div class="leave-card">
+            <span class="leave-icon">{{ $info['icon'] }}</span>
+            <p class="leave-days">{{ $data['remaining'] }}</p>
+            <p class="leave-type">{{ $info['label'] }} Leave</p>
+            <small class="leave-submitted">{{ $data['submitted'] }} submitted / {{ $data['total'] }} allowed</small>
+            @if($data['total'] > 0)
+              <div class="mt-2">
+                <div class="progress" style="height: 6px; background: #e7f2ef; border-radius: 3px;">
+                  <div class="progress-bar" role="progressbar" 
+                       style="width: {{ $percentage }}%; background: {{ $percentage > 50 ? '#10b981' : ($percentage > 25 ? '#f59e0b' : '#ef4444') }};"
+                       aria-valuenow="{{ $percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+            @endif
+          </div>
+        @endforeach
       </div>
-      @endforeach
-    </div>
+      <div class="mt-4 text-center">
+        <small class="text-muted">Leave balance for year {{ $currentYear ?? date('Y') }}</small>
+      </div>
+    @else
+      <div class="text-center">
+        <p>No leave balance data available. Please contact your administrator.</p>
+      </div>
+    @endif
 
   </div>
 </div>

@@ -135,15 +135,14 @@ body {
       <p>View and monitor all your submitted leave requests</p>
     </div>
 
-    @php
-      $requests = [
-        ['type'=>'Vacation Leave', 'start'=>'2025-12-01','end'=>'2025-12-05','status'=>'Approved'],
-        ['type'=>'Sick Leave', 'start'=>'2025-11-10','end'=>'2025-11-12','status'=>'Pending'],
-        ['type'=>'Personal Leave', 'start'=>'2025-11-20','end'=>'2025-11-20','status'=>'Rejected']
-      ];
-    @endphp
+    @if(session('success'))
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    @endif
 
-    @if(count($requests) > 0)
+    @if(isset($leaveRequests) && $leaveRequests->count() > 0)
       <div class="request-card">
         <table class="table request-table mb-0">
           <thead>
@@ -151,39 +150,63 @@ body {
               <th>Leave Type</th>
               <th>Start Date</th>
               <th>End Date</th>
+              <th>Days</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            @foreach($requests as $req)
+            @foreach($leaveRequests as $request)
             <tr>
-              <td>{{ $req['type'] }}</td>
-              <td>{{ $req['start'] }}</td>
-              <td>{{ $req['end'] }}</td>
               <td>
                 @php
-                  $statusClass = match($req['status']){
-                    'Approved' => 'status-approved',
-                    'Pending' => 'status-pending',
-                    'Rejected' => 'status-rejected',
+                  $typeIcons = [
+                    'vacation' => '🌴',
+                    'sick' => '🏥',
+                    'personal' => '👤',
+                    'emergency' => '🆘'
+                  ];
+                  $typeNames = [
+                    'vacation' => 'Vacation Leave',
+                    'sick' => 'Sick Leave',
+                    'personal' => 'Personal Leave',
+                    'emergency' => 'Emergency Leave'
+                  ];
+                @endphp
+                {{ $typeIcons[$request->leave_type] ?? '' }} {{ $typeNames[$request->leave_type] ?? ucfirst($request->leave_type) }}
+              </td>
+              <td>{{ $request->start_date->format('M d, Y') }}</td>
+              <td>{{ $request->end_date->format('M d, Y') }}</td>
+              <td>{{ $request->start_date->diffInDays($request->end_date) + 1 }} day(s)</td>
+              <td>
+                @php
+                  $statusClass = match($request->status){
+                    'approved' => 'status-approved',
+                    'pending' => 'status-pending',
+                    'rejected' => 'status-rejected',
                     default => 'status-pending'
                   };
                 @endphp
-                <span class="status-badge {{ $statusClass }}">{{ $req['status'] }}</span>
+                <span class="status-badge {{ $statusClass }}">{{ ucfirst($request->status) }}</span>
               </td>
               <td>
-                <button class="btn btn-sm btn-outline-primary">View</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewRequest({{ $request->id }})">View</button>
               </td>
             </tr>
             @endforeach
           </tbody>
         </table>
+        
+        <!-- Pagination -->
+        <div class="mt-3">
+          {{ $leaveRequests->links() }}
+        </div>
       </div>
     @else
       <div class="request-card text-center">
         <h5>No Requests Yet</h5>
         <p>Your leave requests will appear here once you submit them.</p>
+        <a href="{{ route('employee.new_request') }}" class="btn btn-primary mt-3">Submit New Request</a>
       </div>
     @endif
 

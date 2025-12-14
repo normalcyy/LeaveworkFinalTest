@@ -21,8 +21,11 @@ return new class extends Migration
             $table->year('year');
             $table->timestamps(); // creates `created_at` and `updated_at` with default CURRENT_TIMESTAMP behavior
 
-            // Optional: add foreign key if you have users table
-            // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // Foreign key constraint
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            
+            // Unique constraint for user, leave_type, and year combination
+            $table->unique(['user_id', 'leave_type', 'year'], 'user_leave_year');
         });
     }
 

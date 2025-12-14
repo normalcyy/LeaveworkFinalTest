@@ -140,7 +140,42 @@ body {
 <div class="main-content" id="mainContent">
   @include('layouts.topnav')
 
-  <h3 class="fw-bold mb-4">Welcome, John Doe!</h3>
+  <h3 class="fw-bold mb-4">Welcome, {{ session('first_name') }} {{ session('last_name') }}!</h3>
+
+  @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ session('success') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
+  <div class="row g-4 mb-4">
+    <!-- Statistics Cards -->
+    <div class="col-md-3">
+      <div class="card p-3 text-center">
+        <h6 class="text-muted mb-2">Pending</h6>
+        <h3 class="mb-0 text-warning">{{ $pendingCount ?? 0 }}</h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 text-center">
+        <h6 class="text-muted mb-2">Approved</h6>
+        <h3 class="mb-0 text-success">{{ $approvedCount ?? 0 }}</h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 text-center">
+        <h6 class="text-muted mb-2">Rejected</h6>
+        <h3 class="mb-0 text-danger">{{ $rejectedCount ?? 0 }}</h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 text-center">
+        <h6 class="text-muted mb-2">Notifications</h6>
+        <h3 class="mb-0 text-primary">{{ $unreadNotificationsCount ?? 0 }}</h3>
+      </div>
+    </div>
+  </div>
 
   <div class="row g-4">
     <!-- Employee Information -->
@@ -148,19 +183,39 @@ body {
       <div class="card p-3 equal-card">
         <h5 class="mb-2">Employee Information</h5>
         <div class="scrollable-list">
-          <p><strong>Name:</strong> John Doe</p>
-          <p><strong>Email:</strong> johndoe@example.com</p>
-          <p><strong>Role:</strong> Employee</p>
+          <p><strong>Name:</strong> {{ session('first_name') }} {{ session('middle_name') }} {{ session('last_name') }}</p>
+          <p><strong>Email:</strong> {{ session('email') }}</p>
+          <p><strong>Employee ID:</strong> {{ session('emp_id') }}</p>
+          <p><strong>Position:</strong> {{ session('position') }}</p>
+          <p><strong>Department:</strong> {{ session('department') }}</p>
+          <p><strong>Company:</strong> {{ session('company') }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Recent Activity -->
+    <!-- Recent Requests -->
     <div class="col-md-6">
       <div class="card p-3 equal-card">
-        <h5 class="mb-2">Recent Activity</h5>
+        <h5 class="mb-2">Recent Requests</h5>
         <ul class="list-group list-group-flush scrollable-list">
-          <li class="list-group-item">No recent activity.</li>
+          @if(isset($recentRequests) && $recentRequests->count() > 0)
+            @foreach($recentRequests as $request)
+              <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ ucfirst($request->leave_type) }}</strong>
+                    <br>
+                    <small class="text-muted">{{ $request->start_date->format('M d') }} - {{ $request->end_date->format('M d, Y') }}</small>
+                  </div>
+                  <span class="badge bg-{{ $request->status == 'approved' ? 'success' : ($request->status == 'rejected' ? 'danger' : 'warning') }}">
+                    {{ ucfirst($request->status) }}
+                  </span>
+                </div>
+              </li>
+            @endforeach
+          @else
+            <li class="list-group-item">No recent requests.</li>
+          @endif
         </ul>
       </div>
     </div>
@@ -172,21 +227,24 @@ body {
         <div class="row g-4 text-center">
           @php
             $leaveTypes = [
-              'Vacation' => ['icon'=>'🌴','remaining'=>8,'submitted'=>0,'total'=>8],
-              'Sick' => ['icon'=>'🏥','remaining'=>10,'submitted'=>0,'total'=>10],
-              'Personal' => ['icon'=>'👤','remaining'=>5,'submitted'=>0,'total'=>5],
-              'Emergency' => ['icon'=>'🆘','remaining'=>5,'submitted'=>0,'total'=>5]
+              'vacation' => ['icon'=>'🌴','label'=>'Vacation'],
+              'sick' => ['icon'=>'🏥','label'=>'Sick'],
+              'personal' => ['icon'=>'👤','label'=>'Personal'],
+              'emergency' => ['icon'=>'🆘','label'=>'Emergency']
             ];
           @endphp
-          @foreach($leaveTypes as $label => $data)
-          <div class="col-6 col-md-3">
-            <div class="leave-card">
-              <span class="leave-icon">{{ $data['icon'] }}</span>
-              <p class="leave-days">{{ $data['remaining'] }}</p>
-              <p class="leave-type">{{ $label }} Requests</p>
-              <small class="text-muted">{{ $data['submitted'] }} submitted / {{ $data['total'] }} allowed</small>
+          @foreach($leaveTypes as $type => $info)
+            @php
+              $balance = $leaveBalance[$type] ?? ['total' => 0, 'remaining' => 0];
+            @endphp
+            <div class="col-6 col-md-3">
+              <div class="leave-card">
+                <span class="leave-icon">{{ $info['icon'] }}</span>
+                <p class="leave-days">{{ $balance['remaining'] ?? 0 }}</p>
+                <p class="leave-type">{{ $info['label'] }} Requests</p>
+                <small class="text-muted">{{ $balance['total'] ?? 0 }} total</small>
+              </div>
             </div>
-          </div>
           @endforeach
         </div>
       </div>

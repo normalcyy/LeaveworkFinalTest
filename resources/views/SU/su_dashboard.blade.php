@@ -168,6 +168,38 @@ body {
   box-shadow: 0 8px 20px rgba(25, 24, 59, 0.25);
 }
 
+/* Companies Table */
+.companies-table {
+  background: #fff;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(25,24,59,0.08);
+  margin-bottom: 2rem;
+}
+.companies-table table {
+  margin: 0;
+}
+.companies-table thead {
+  background: var(--primary);
+  color: #fff;
+}
+.companies-table thead th {
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  border: none;
+}
+.companies-table tbody tr {
+  border-bottom: 1px solid var(--accent);
+  transition: var(--transition);
+}
+.companies-table tbody tr:hover {
+  background-color: var(--light);
+}
+.companies-table tbody td {
+  padding: 1rem 1.5rem;
+  vertical-align: middle;
+}
+
 /* Responsive */
 @media (max-width: 992px) { 
   #sidebar { transform: translateX(-100%); }
@@ -179,6 +211,7 @@ body {
   .stats-grid { grid-template-columns: 1fr; }
   .actions-grid { grid-template-columns: 1fr; }
   .dashboard-header h2 { font-size: 1.5rem; }
+  .companies-table { overflow-x: auto; }
 }
 </style>
 </head>
@@ -213,8 +246,41 @@ body {
       </div>
     </div>
 
+    <!-- Companies List -->
+    <div class="mt-4">
+      <h3 class="mb-3">Registered Companies</h3>
+      @if(isset($companies) && count($companies) > 0)
+        <div class="companies-table">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Company Name</th>
+                <th>Admins</th>
+                <th>Employees</th>
+                <th>Total Users</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($companies as $company)
+                <tr>
+                  <td><strong>{{ $company['name'] }}</strong></td>
+                  <td><span class="badge bg-info">{{ $company['admin_count'] }}</span></td>
+                  <td><span class="badge bg-success">{{ $company['employee_count'] }}</span></td>
+                  <td><strong>{{ $company['total_users'] }}</strong></td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      @else
+        <div class="alert alert-info">
+          <p class="mb-0">No companies registered yet. Create an admin to register the first company.</p>
+        </div>
+      @endif
+    </div>
+
     <!-- Quick Actions -->
-    <div class="actions-grid">
+    <div class="actions-grid mt-4">
       <div class="action-card">
         <h5>Create Admin</h5>
         <p>Add a new admin for a company with the necessary credentials.</p>
@@ -223,9 +289,11 @@ body {
         </a>
       </div>
       <div class="action-card">
-        <h5>Create Company</h5>
-        <p>Register a new company and assign admins to manage it.</p>
-        <a href="#" class="btn">Create Company</a>
+        <h5>View Admins</h5>
+        <p>View and manage all registered admins in the system.</p>
+        <a href="{{ route('su.admin.list') }}" class="btn d-flex align-items-center justify-content-center">
+          View Admins
+        </a>
       </div>
     </div>
 

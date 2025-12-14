@@ -29,10 +29,11 @@ class UserProfileController extends Controller
             'last_name' => 'required|string|max:100',
         ]);
 
-        $user->first_name = $validated['first_name'];
-        $user->middle_name = $validated['middle_name'];
-        $user->last_name = $validated['last_name'];
-        $user->save();
+        $user->update([
+            'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'],
+            'last_name' => $validated['last_name'],
+        ]);
 
         // Update session data
         Session::put([
@@ -57,17 +58,19 @@ class UserProfileController extends Controller
             'password.different' => 'New password must be different from current password.',
         ]);
 
-        // Verify current password
-        if (!Hash::check($validated['current_password'], $user->password_hash)) {
+        // Verify current password - check both password and password_hash columns
+        $passwordField = $user->password_hash ?? $user->password;
+        if (!Hash::check($validated['current_password'], $passwordField)) {
             return response()->json([
                 'errors' => ['current_password' => ['Current password is incorrect.']]
             ], 422);
         }
 
         // Update password
-        $user->password_hash = Hash::make($validated['password']);
-        $user->must_change_password = false;
-        $user->save();
+        $user->update([
+            'password_hash' => Hash::make($validated['password']),
+            'must_change_password' => false,
+        ]);
 
         return response()->json([
             'success' => true,

@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\PasswordReset;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class ForgotPasswordController extends Controller
 {
@@ -42,7 +46,7 @@ class ForgotPasswordController extends Controller
 
         try {
             // Check if email exists in the users table
-            $user = DB::table('users')->where('email', $request->email)->first();
+            $user = User::where('email', $request->email)->first();
 
             if (!$user) {
                 return response()->json([
@@ -51,17 +55,30 @@ class ForgotPasswordController extends Controller
                 ], 404);
             }
 
-            // Reset password to 123456 - UPDATE THE CORRECT COLUMN
-            DB::table('users')
-                ->where('email', $request->email)
-                ->update([
-                    'password_hash' => Hash::make('12345678'), // Changed from 'password' to 'password_hash'
-                    'updated_at' => now()
-                ]);
+            // Generate reset token
+            $token = Str::random(64);
+            $expiresAt = Carbon::now()->addHours(24); // Token expires in 24 hours
 
+            // Invalidate any existing reset tokens for this user
+            PasswordReset::where('user_id', $user->id)
+                ->where('used', false)
+                ->update(['used' => true]);
+
+            // Create new password reset record
+            PasswordReset::create([
+                'user_id' => $user->id,
+                'reset_token' => Hash::make($token),
+                'expires_at' => $expiresAt,
+                'used' => false,
+            ]);
+
+            // For now, return the token (in production, send via email)
+            // In a real application, you would send an email with the reset link
             return response()->json([
                 'success' => true,
-                'message' => 'Password has been reset to 12345678. Please login with this temporary password and change it immediately.'
+                'message' => 'Password reset token has been generated. Please use the following token to reset your password: ' . $token,
+                'token' => $token, // Remove this in production, only for testing
+                'reset_url' => route('password.reset.form') . '?token=' . $token . '&email=' . urlencode($user->email)
             ]);
 
         } catch (\Exception $e) {

@@ -159,50 +159,108 @@ input[type="file"] {
   </div>
 
   <div class="form-card">
-    <form action="#" method="POST" enctype="multipart/form-data">
+    @if(session('success'))
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    @endif
+
+    @if($errors->any())
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <ul class="mb-0">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    @endif
+
+    <form action="{{ route('employee.leave_request.store') }}" method="POST" id="leaveRequestForm">
       @csrf
 
       <!-- Leave Type -->
       <div class="mb-4">
-        <label class="form-label">Leave Type</label>
-        <select class="form-select" required>
+        <label class="form-label">Leave Type <span class="text-danger">*</span></label>
+        <select name="leave_type" class="form-select @error('leave_type') is-invalid @enderror" required>
           <option value="" disabled selected>Select leave type</option>
-          <option value="Vacation Leave">🌴 Vacation Leave</option>
-          <option value="Sick Leave">🏥 Sick Leave</option>
-          <option value="Personal Leave">👤 Personal Leave</option>
-          <option value="Emergency Leave">🆘 Emergency Leave</option>
+          <option value="vacation" {{ old('leave_type') == 'vacation' ? 'selected' : '' }}>🌴 Vacation Leave</option>
+          <option value="sick" {{ old('leave_type') == 'sick' ? 'selected' : '' }}>🏥 Sick Leave</option>
+          <option value="personal" {{ old('leave_type') == 'personal' ? 'selected' : '' }}>👤 Personal Leave</option>
+          <option value="emergency" {{ old('leave_type') == 'emergency' ? 'selected' : '' }}>🆘 Emergency Leave</option>
+        </select>
+        @error('leave_type')
+          <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+      </div>
+
+      <!-- Priority -->
+      <div class="mb-4">
+        <label class="form-label">Priority</label>
+        <select name="priority" class="form-select">
+          <option value="normal" {{ old('priority') == 'normal' ? 'selected' : '' }}>Normal</option>
+          <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+          <option value="emergency" {{ old('priority') == 'emergency' ? 'selected' : '' }}>Emergency</option>
         </select>
       </div>
 
       <!-- Dates -->
       <div class="row g-4 mb-4">
         <div class="col-md-6">
-          <label class="form-label">Start Date</label>
-          <input type="date" class="form-control" required>
+          <label class="form-label">Start Date <span class="text-danger">*</span></label>
+          <input type="date" name="start_date" class="form-control @error('start_date') is-invalid @enderror" 
+                 value="{{ old('start_date') }}" min="{{ date('Y-m-d') }}" required>
+          @error('start_date')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
         </div>
         <div class="col-md-6">
-          <label class="form-label">End Date</label>
-          <input type="date" class="form-control" required>
+          <label class="form-label">End Date <span class="text-danger">*</span></label>
+          <input type="date" name="end_date" class="form-control @error('end_date') is-invalid @enderror" 
+                 value="{{ old('end_date') }}" min="{{ date('Y-m-d') }}" required>
+          @error('end_date')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
         </div>
       </div>
 
       <!-- Reason -->
       <div class="mb-4">
-        <label class="form-label">Reason</label>
-        <textarea class="form-control" rows="4" placeholder="Describe your reason for leave..." required></textarea>
+        <label class="form-label">Reason <span class="text-danger">*</span></label>
+        <textarea name="reason" class="form-control @error('reason') is-invalid @enderror" rows="4" 
+                  placeholder="Describe your reason for leave..." required>{{ old('reason') }}</textarea>
+        @error('reason')
+          <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+        <small class="text-muted">Minimum 10 characters required</small>
       </div>
 
-      <!-- Attachment -->
+      <!-- Message (Optional) -->
       <div class="mb-4">
-        <label class="form-label">Attachment (Optional)</label>
-        <input type="file" class="form-control">
-        <small class="text-muted">Upload medical certificates or proof if necessary</small>
+        <label class="form-label">Additional Message (Optional)</label>
+        <textarea name="message" class="form-control" rows="3" 
+                  placeholder="Any additional information...">{{ old('message') }}</textarea>
+      </div>
+
+      <!-- Emergency Contact (Optional) -->
+      <div class="mb-4">
+        <label class="form-label">Emergency Contact (Optional)</label>
+        <input type="text" name="emergency_contact" class="form-control" 
+               value="{{ old('emergency_contact') }}" placeholder="Contact number in case of emergency">
+      </div>
+
+      <!-- Handover To (Optional) -->
+      <div class="mb-4">
+        <label class="form-label">Handover To (Optional)</label>
+        <input type="text" name="handover_to" class="form-control" 
+               value="{{ old('handover_to') }}" placeholder="Person to handover work to">
       </div>
 
       <!-- Buttons -->
       <div class="d-flex justify-content-end gap-3">
-        <button type="button" class="btn-cancel">Cancel</button>
-        <button type="submit" class="btn-submit">Submit Request</button>
+        <a href="{{ route('employee.dashboard') }}" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-submit" id="submitBtn">Submit Request</button>
       </div>
 
     </form>

@@ -21,17 +21,18 @@ return new class extends Migration
 
         // Create the users table
         Schema::create('users', function (Blueprint $table) {
-            $table->integer('id')->primary();
-            $table->string('emp_id', 20);
+            $table->id();
+            $table->string('emp_id', 20)->unique();
             $table->string('first_name', 50);
             $table->string('middle_name', 50)->nullable();
             $table->string('last_name', 50);
-            $table->string('email', 100);
+            $table->string('email', 100)->unique();
             $table->enum('role', ['employee','admin','superuser'])->default('employee');
             $table->string('position', 100)->nullable();
             $table->string('department', 50)->nullable();
             $table->string('company', 100)->nullable();
             $table->string('password_hash', 255);
+            $table->boolean('must_change_password')->default(false);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
@@ -52,6 +53,7 @@ return new class extends Migration
                 'department' => 'IT',
                 'company' => 'UC',
                 'password_hash' => $passwordHash,
+                'must_change_password' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -67,6 +69,7 @@ return new class extends Migration
                 'department' => 'IT',
                 'company' => 'UC',
                 'password_hash' => $passwordHash,
+                'must_change_password' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -82,6 +85,7 @@ return new class extends Migration
                 'department' => 'IT',
                 'company' => 'UC',
                 'password_hash' => $passwordHash,
+                'must_change_password' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
