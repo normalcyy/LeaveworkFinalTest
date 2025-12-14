@@ -263,7 +263,7 @@
     @endif
 
     <div class="card">
-      <form action="{{ route('SU.create_admin.post') }}" method="POST" id="createAdminForm">
+      <form action="{{ route('su.create_admin.post') }}" method="POST" id="createAdminForm">
         @csrf
         
         <div class="row mb-3">
