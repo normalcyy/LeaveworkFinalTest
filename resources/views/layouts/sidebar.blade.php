@@ -41,7 +41,7 @@
     <li class="nav-item mb-2 mt-2">
       <a class="nav-link d-flex align-items-center {{ request()->is('admin/manage-employees') ? 'fw-bold text-primary' : '' }}"
         href="{{ url('/admin/manage-employees') }}">
-        <span class="me-2">👥</span> Manage Employees
+        <span class="me-2">👥</span> Employees
       </a>
     </li>
     <li class="nav-item mb-2 mt-2">

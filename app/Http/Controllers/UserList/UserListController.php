@@ -27,7 +27,7 @@ class UserListController extends Controller
         if ($currentUserRole === 'admin') {
             $users->where('role', 'employee')
                 ->where('company', $currentUserCompany);
-            $view = 'SU.employee-list';
+            $view = 'admin.manage-employees';
         } elseif ($currentUserRole === 'superuser') {
             $users->where('role', 'admin');
             $view = 'SU.admin-list';

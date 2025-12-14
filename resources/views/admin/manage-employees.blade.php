@@ -1,446 +1,435 @@
-<!-- resources/views/admin/manage-employees.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin | Manage Employees | LeaveWork</title>
-<link rel="icon" type="image/png" href="{{ asset('assets/leavework_logo.png') }}">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Employees | LeaveWork</title>
+  <link rel="icon" type="image/png" href="{{ asset('assets/leavework_logo.png') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --primary: #19183B;
+      --secondary: #708993;
+      --accent: #A1C2BD;
+      --light: #E7F2EF;
+    }
 
-<style>
-:root {
-  --primary: #19183B;
-  --secondary: #708993;
-  --accent: #A1C2BD;
-  --light: #E7F2EF;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #3b82f6;
-  --radius: 14px;
-  --shadow-light: 0 4px 15px rgba(25,24,59,0.06);
-  --shadow-hover: 0 6px 20px rgba(25,24,59,0.12);
-  --transition: 0.25s ease;
-}
+    body {
+      font-family: 'Segoe UI', system-ui;
+      background: var(--light);
+      color: var(--primary);
+      display: flex;
+      min-height: 100vh;
+    }
 
-/* Body */
-body {
-  margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: var(--primary);
-  background-color: var(--light);
-  display: flex;
-  min-height: 100vh;
-}
+    #sidebar {
+      width: 250px;
+      background: #fff;
+      border-end: 1px solid var(--accent);
+      position: fixed;
+      min-height: 100vh;
+      z-index: 1000;
+    }
 
-/* Sidebar */
-#sidebar {
-  width: 240px;
-  background: #fff;
-  border-right: 1px solid var(--accent);
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  padding: 2rem 1.5rem;
-  overflow-y: auto;
-  transition: transform 0.3s ease;
-  z-index: 1000;
-}
-#sidebar.d-none { transform: translateX(-100%); }
+    #sidebar.d-none {
+      transform: translateX(-100%);
+    }
 
-/* Main Content */
-.main-content {
-  flex: 1;
-  margin-left: 240px;
-  padding: 2rem;
-  transition: margin-left 0.3s ease;
-}
+    .main-content {
+      flex: 1;
+      margin-left: 250px;
+      display: flex;
+      flex-direction: column;
+    }
 
-/* Topnav */
-.topnav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fff;
-  padding: 1rem 1.5rem;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-light);
-  margin-bottom: 2rem;
-}
-.topnav h4 { margin: 0; font-weight: 600; font-size: 1.3rem; }
-.btn-toggle {
-  background: var(--primary);
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius);
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-}
-.btn-toggle:hover { background: var(--secondary); }
+    .content-area {
+      padding: 2rem;
+      flex: 1;
+    }
 
-/* Content Wrapper */
-.content-wrapper { max-width: 1400px; width: 100%; margin: 0 auto; }
+    @media (max-width: 992px) {
+      #sidebar {
+        transform: translateX(-100%);
+      }
 
-/* Page Header */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2.5rem;
-}
-.dashboard-header h2 { font-size: 2rem; font-weight: 700; margin: 0; }
-.dashboard-header p { color: var(--secondary); margin: 0.3rem 0 0 0; }
+      .main-content {
+        margin-left: 0;
+      }
+    }
 
-/* Stats Cards */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
-}
-.stat-card {
-  background: #fff;
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-light);
-  transition: var(--transition);
-  border-left: 4px solid var(--accent);
-}
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-hover);
-}
-.stat-card.success { border-left-color: var(--success); }
-.stat-card.warning { border-left-color: var(--warning); }
-.stat-card.info { border-left-color: var(--info); }
-.stat-card.danger { border-left-color: var(--danger); }
+    .page-header {
+      background: white;
+      padding: 1.5rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      margin-bottom: 2rem;
+      border-left: 4px solid var(--primary);
+    }
 
-.stat-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-.stat-number {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0;
-  color: var(--primary);
-}
-.stat-label {
-  font-weight: 500;
-  color: var(--secondary);
-  font-size: 0.95rem;
-  margin-top: 0.3rem;
-}
+    .table-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
 
-/* Action Bar */
-.action-bar {
-  background: #fff;
-  padding: 1.5rem;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-light);
-  margin-bottom: 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
+    .table-header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem 1.5rem;
+    }
 
-.search-box {
-  flex: 1;
-  max-width: 400px;
-  position: relative;
-}
-.search-box input {
-  width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.75rem;
-  border: 2px solid var(--accent);
-  border-radius: var(--radius);
-  font-size: 0.95rem;
-  transition: var(--transition);
-}
-.search-box input:focus {
-  outline: none;
-  border-color: var(--primary);
-}
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--secondary);
-  font-size: 1.2rem;
-}
+    .table th {
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      color: var(--primary);
+      border-bottom: 2px solid var(--accent);
+      padding: 1rem 1.5rem;
+    }
 
-.btn-primary-custom {
-  background: var(--primary);
-  color: #fff;
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius);
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.btn-primary-custom:hover {
-  background: var(--secondary);
-  transform: translateY(-2px);
-}
+    .table td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #eee;
+    }
 
-/* Employee Table */
-.table-container {
-  background: #fff;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-light);
-  overflow: hidden;
-}
+    .table tr:hover {
+      background: rgba(161, 194, 189, 0.05);
+    }
 
-.employee-table {
-  width: 100%;
-  margin: 0;
-}
-.employee-table thead {
-  background: var(--primary);
-  color: #fff;
-}
-.employee-table thead th {
-  padding: 1rem 1.5rem;
-  font-weight: 600;
-  text-align: left;
-  border: none;
-}
-.employee-table tbody tr {
-  border-bottom: 1px solid var(--accent);
-  transition: var(--transition);
-}
-.employee-table tbody tr:hover {
-  background-color: var(--light);
-}
-.employee-table tbody td {
-  padding: 1rem 1.5rem;
-  vertical-align: middle;
-}
+    .badge-role {
+      font-weight: 500;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+    }
 
-.employee-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: #fff;
-  margin-right: 0.75rem;
-}
+    .badge-role.admin {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
 
-.employee-info {
-  display: inline-block;
-  vertical-align: middle;
-}
-.employee-name {
-  font-weight: 600;
-  color: var(--primary);
-  margin: 0;
-}
-.employee-email {
-  font-size: 0.85rem;
-  color: var(--secondary);
-  margin: 0;
-}
+    .badge-role.employee {
+      background: #d4edda;
+      color: #155724;
+    }
 
-.badge {
-  padding: 0.35rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-.badge-success { background: #d1fae5; color: #065f46; }
-.badge-warning { background: #fef3c7; color: #92400e; }
-.badge-danger { background: #fee2e2; color: #991b1b; }
+    .badge-role.superuser {
+      background: #f8d7da;
+      color: #721c24;
+    }
 
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-.btn-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition);
-  font-size: 1rem;
-}
-.btn-icon.edit {
-  background: #dbeafe;
-  color: #1e40af;
-}
-.btn-icon.edit:hover {
-  background: #3b82f6;
-  color: #fff;
-}
-.btn-icon.delete {
-  background: #fee2e2;
-  color: #991b1b;
-}
-.btn-icon.delete:hover {
-  background: #ef4444;
-  color: #fff;
-}
+    .sortable {
+      cursor: pointer;
+      transition: color 0.2s;
+      position: relative;
+      user-select: none;
+    }
 
-/* Responsive */
-@media(max-width: 992px) {
-  #sidebar { transform: translateX(-100%); }
-  .main-content { margin-left: 0; padding: 1rem; }
-  .dashboard-header { flex-direction: column; align-items: flex-start; }
-  .action-bar { flex-direction: column; }
-  .search-box { max-width: 100%; }
-  .table-container { overflow-x: auto; }
-}
-</style>
+    .sortable:hover {
+      color: var(--secondary);
+    }
+
+    .sort-icon {
+      font-size: 0.75rem;
+      margin-left: 0.25rem;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .sortable.active .sort-icon {
+      opacity: 1;
+    }
+
+    .sortable.asc .sort-icon i::before {
+      content: "\F128";
+    }
+
+    .sortable.desc .sort-icon i::before {
+      content: "\F138";
+    }
+
+    .data-label {
+      font-weight: 500;
+      color: var(--secondary);
+      font-size: 0.9rem;
+    }
+
+    .email-cell {
+      font-size: 0.9rem;
+      color: var(--secondary);
+    }
+
+    @media (max-width: 768px) {
+      .content-area {
+        padding: 1rem;
+      }
+
+      .table thead {
+        display: none;
+      }
+
+      .table tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+      }
+
+      .table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+      }
+
+      .table td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--primary);
+        min-width: 120px;
+      }
+
+      .email-cell {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  @include('layouts.sidebar')
+  <div class="main-content" id="mainContent">
+    @include('layouts.topnav')
+    <div class="content-area">
+      <div class="content-wrapper">
+        <div class="page-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h1 class="h3 mb-2" style="color: var(--primary);">Manage Employees</h1>
+              <p class="text-muted mb-0">View all employees in your company</p>
+            </div>
+            <span class="badge bg-light text-dark p-2">
+              <i class="bi bi-people-fill me-1"></i>
+              <span id="userCount">{{ $users->total() }}</span> Employees
+            </span>
+          </div>
+        </div>
 
-@include('layouts.sidebar')
+        @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+          {{ session('success') }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        @endif
 
-<div class="main-content" id="mainContent">
-  @include('layouts.topnav')
+        @if($users->isEmpty())
+        <div class="alert alert-info">
+          No employees found in your company.
+        </div>
+        @else
+        <div class="table-container">
+          <div class="table-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Employee List</h5>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0" id="userTable">
+              <thead>
+                <tr>
+                  <th class="sortable" data-sort="emp_id">Employee ID<span class="sort-icon"><i class="bi"></i></span></th>
+                  <th class="sortable" data-sort="full_name">Full Name<span class="sort-icon"><i class="bi"></i></span></th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th class="sortable" data-sort="position">Position<span class="sort-icon"><i class="bi"></i></span></th>
+                  <th class="sortable" data-sort="department">Department<span class="sort-icon"><i class="bi"></i></span></th>
+                  <th class="sortable" data-sort="company">Company<span class="sort-icon"><i class="bi"></i></span></th>
+                  <th class="sortable" data-sort="created_at">Joined At<span class="sort-icon"><i class="bi"></i></span></th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody">
+                @foreach($users as $user)
+                <tr>
+                  <td data-label="Employee ID"><span class="data-label d-md-none">Employee ID: </span>{{ $user->emp_id }}</td>
+                  <td data-label="Full Name">
+                    <span class="data-label d-md-none">Full Name: </span>
+                    {{ $user->last_name }}, {{ $user->first_name }}@if($user->middle_name) {{ strtoupper(substr($user->middle_name, 0, 1)) }}.@endif
+                  </td>
+                  <td data-label="Email" class="email-cell"><span class="data-label d-md-none">Email: </span>{{ $user->email }}</td>
+                  <td data-label="Role"><span class="data-label d-md-none">Role: </span><span class="badge-role {{ $user->role }}">{{ ucfirst($user->role) }}</span></td>
+                  <td data-label="Position"><span class="data-label d-md-none">Position: </span>{{ $user->position }}</td>
+                  <td data-label="Department"><span class="data-label d-md-none">Department: </span>{{ $user->department }}</td>
+                  <td data-label="Company"><span class="data-label d-md-none">Company: </span>{{ $user->company }}</td>
+                  <td data-label="Joined At"><span class="data-label d-md-none">Joined At: </span>{{ $user->created_at->format('m/d/Y') }}</td>
+                </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
 
-  <div class="content-wrapper">
-    <div class="dashboard-header">
-      <div>
-        <h2>Manage Employees</h2>
-        <p>View and manage all employees in the system</p>
-      </div>
-    </div>
+          @if($users->hasPages())
+          <div class="p-3 border-top">
+            <nav aria-label="User pagination">
+              <ul class="pagination justify-content-center mb-0">
+                @if($users->onFirstPage())
+                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                @else
+                <li class="page-item"><a class="page-link" href="{{ $users->previousPageUrl() }}" rel="prev">Previous</a></li>
+                @endif
 
-    <div class="stats-grid">
-      <div class="stat-card success">
-        <span class="stat-icon">👥</span>
-        <p class="stat-number">24</p>
-        <p class="stat-label">Total Employees</p>
-      </div>
-      <div class="stat-card info">
-        <span class="stat-icon">✅</span>
-        <p class="stat-number">21</p>
-        <p class="stat-label">Active</p>
-      </div>
-      <div class="stat-card warning">
-        <span class="stat-icon">🏖️</span>
-        <p class="stat-number">3</p>
-        <p class="stat-label">On Leave</p>
-      </div>
-      <div class="stat-card danger">
-        <span class="stat-icon">⏸️</span>
-        <p class="stat-number">0</p>
-        <p class="stat-label">Inactive</p>
-      </div>
-    </div>
+                @php
+                $currentPage = $users->currentPage();
+                $lastPage = $users->lastPage();
+                $start = max(1, $currentPage - 2);
+                $end = min($lastPage, $currentPage + 2);
+                if ($currentPage <= 3) $end=min(5, $lastPage);
+                  if ($currentPage>= $lastPage - 2) $start = max(1, $lastPage - 4);
+                  @endphp
 
-    <div class="action-bar">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Search employees by name, email, or department...">
-      </div>
-      <button class="btn-primary-custom">
-        <span>➕</span>
-        Add New Employee
-      </button>
-    </div>
+                  @if($start > 1)
+                  <li class="page-item"><a class="page-link" href="{{ $users->url(1) }}">1</a></li>
+                  @if($start > 2)<li class="page-item disabled"><span class="page-link">...</span></li>@endif
+                  @endif
 
-    <div class="table-container">
-      <table class="employee-table">
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Department</th>
-            <th>Position</th>
-            <th>Status</th>
-            <th>Join Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @php
-            $employees = [
-              ['name'=>'John Doe','email'=>'john.doe@company.com','dept'=>'Engineering','position'=>'Senior Developer','status'=>'Active','join'=>'Jan 15, 2023','color'=>'#3b82f6'],
-              ['name'=>'Jane Smith','email'=>'jane.smith@company.com','dept'=>'Marketing','position'=>'Marketing Manager','status'=>'Active','join'=>'Mar 22, 2023','color'=>'#10b981'],
-              ['name'=>'Mike Johnson','email'=>'mike.j@company.com','dept'=>'Sales','position'=>'Sales Representative','status'=>'On Leave','join'=>'Jun 10, 2022','color'=>'#f59e0b'],
-              ['name'=>'Sarah Williams','email'=>'sarah.w@company.com','dept'=>'HR','position'=>'HR Specialist','status'=>'Active','join'=>'Feb 5, 2023','color'=>'#8b5cf6'],
-              ['name'=>'David Brown','email'=>'david.b@company.com','dept'=>'Engineering','position'=>'DevOps Engineer','status'=>'Active','join'=>'Aug 18, 2022','color'=>'#ef4444'],
-              ['name'=>'Emily Davis','email'=>'emily.d@company.com','dept'=>'Design','position'=>'UX Designer','status'=>'Active','join'=>'Apr 12, 2023','color'=>'#ec4899'],
-            ];
-          @endphp
+                  @for ($page = $start; $page <= $end; $page++)
+                    @if($page==$users->currentPage())
+                    <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                    @else
+                    <li class="page-item"><a class="page-link" href="{{ $users->url($page) }}">{{ $page }}</a></li>
+                    @endif
+                    @endfor
 
-          @foreach($employees as $emp)
-          <tr>
-            <td>
-              <div class="employee-avatar" style="background-color: {{ $emp['color'] }};">
-                {{ strtoupper(substr($emp['name'], 0, 1)) }}
+                    @if($end < $lastPage)
+                      @if($end < $lastPage - 1)<li class="page-item disabled"><span class="page-link">...</span></li>@endif
+                      <li class="page-item"><a class="page-link" href="{{ $users->url($lastPage) }}">{{ $lastPage }}</a></li>
+                      @endif
+
+                      @if($users->hasMorePages())
+                      <li class="page-item"><a class="page-link" href="{{ $users->nextPageUrl() }}" rel="next">Next</a></li>
+                      @else
+                      <li class="page-item disabled"><span class="page-link">Next</span></li>
+                      @endif
+              </ul>
+              <div class="text-center text-muted mt-2">
+                Showing {{ $users->firstItem() }} to {{ $users->lastItem() }} of {{ $users->total() }} entries
+                ({{ $users->perPage() }} per page)
               </div>
-              <div class="employee-info">
-                <p class="employee-name">{{ $emp['name'] }}</p>
-                <p class="employee-email">{{ $emp['email'] }}</p>
-              </div>
-            </td>
-            <td>{{ $emp['dept'] }}</td>
-            <td>{{ $emp['position'] }}</td>
-            <td>
-              <span class="badge badge-{{ $emp['status'] === 'Active' ? 'success' : 'warning' }}">
-                {{ $emp['status'] }}
-              </span>
-            </td>
-            <td>{{ $emp['join'] }}</td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-icon edit" title="Edit">✏️</button>
-                <button class="btn-icon delete" title="Delete">🗑️</button>
-              </div>
-            </td>
-          </tr>
-          @endforeach
-        </tbody>
-      </table>
+            </nav>
+          </div>
+          @endif
+        </div>
+        @endif
+      </div>
     </div>
-
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-const toggleBtn = document.getElementById('sidebarToggle');
-const sidebar = document.getElementById('sidebar');
-const mainContent = document.getElementById('mainContent');
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Sidebar toggle
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('mainContent');
 
-toggleBtn?.addEventListener('click', () => {
-  sidebar.classList.toggle('d-none');
-  mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '240px';
-});
+      if (sidebarToggle && sidebar && mainContent) {
+        sidebarToggle.addEventListener('click', () => {
+          sidebar.classList.toggle('d-none');
+          mainContent.style.marginLeft = sidebar.classList.contains('d-none') ? '0' : '250px';
+        });
+      }
 
-// Search functionality
-const searchInput = document.querySelector('.search-box input');
-const tableRows = document.querySelectorAll('.employee-table tbody tr');
+      // Simple table sorting functionality
+      class TableSorter {
+        constructor() {
+          this.currentSortColumn = null;
+          this.currentSortDirection = 'asc';
+          this.tableBody = document.getElementById('userTableBody');
+          this.originalRows = Array.from(this.tableBody.querySelectorAll('tr'));
+          this.sortableHeaders = document.querySelectorAll('.sortable[data-sort]');
+          this.init();
+        }
 
-searchInput?.addEventListener('input', (e) => {
-  const searchTerm = e.target.value.toLowerCase();
-  
-  tableRows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(searchTerm) ? '' : 'none';
-  });
-});
-</script>
+        init() {
+          this.sortableHeaders.forEach(header => {
+            header.addEventListener('click', (e) => {
+              const sortColumn = header.getAttribute('data-sort');
+              this.sortTable(sortColumn);
+            });
+          });
+        }
 
+        getCellValue(row, column) {
+          const cells = row.querySelectorAll('td');
+          const columnMap = {
+            'emp_id': 0,
+            'full_name': 1,
+            'position': 4,
+            'department': 5,
+            'company': 6,
+            'created_at': 7
+          };
+
+          const cellIndex = columnMap[column];
+          if (cellIndex !== undefined && cells[cellIndex]) {
+            return cells[cellIndex].textContent.trim().toLowerCase();
+          }
+          return '';
+        }
+
+        sortTable(column) {
+          if (this.currentSortColumn === column) {
+            this.currentSortDirection = this.currentSortDirection === 'asc' ? 'desc' : 'asc';
+          } else {
+            this.currentSortDirection = 'asc';
+          }
+
+          this.currentSortColumn = column;
+          this.updateSortIndicators();
+
+          const sortedRows = this.originalRows.slice().sort((a, b) => {
+            const aValue = this.getCellValue(a, column);
+            const bValue = this.getCellValue(b, column);
+            let comparison = 0;
+
+            comparison = aValue.localeCompare(bValue, undefined, {
+              sensitivity: 'base',
+              numeric: true
+            });
+
+            return this.currentSortDirection === 'asc' ? comparison : -comparison;
+          });
+
+          this.tableBody.innerHTML = '';
+          sortedRows.forEach(row => this.tableBody.appendChild(row));
+        }
+
+        updateSortIndicators() {
+          this.sortableHeaders.forEach(header => {
+            header.classList.remove('active', 'asc', 'desc');
+            const icon = header.querySelector('.sort-icon i');
+            if (icon) icon.className = 'bi';
+          });
+
+          const currentHeader = Array.from(this.sortableHeaders).find(header =>
+            header.getAttribute('data-sort') === this.currentSortColumn
+          );
+
+          if (currentHeader) {
+            currentHeader.classList.add('active', this.currentSortDirection);
+            const icon = currentHeader.querySelector('.sort-icon i');
+            if (icon) {
+              icon.className = `bi bi-arrow-${this.currentSortDirection === 'asc' ? 'up' : 'down'}`;
+            }
+          }
+        }
+      }
+
+      // Initialize table sorter if table exists
+      if (document.querySelector('#userTableBody tr')) {
+        new TableSorter();
+      }
+    });
+  </script>
 </body>
+
 </html>

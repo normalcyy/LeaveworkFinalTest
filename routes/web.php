@@ -11,7 +11,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Superuser\SUDashboardController;
 use App\Http\Controllers\UserList\UserListController;
- 
+
 
 /*
 |--------------------------------------------------------------------------
@@ -62,14 +62,17 @@ Route::prefix('employee')->group(function () {
     Route::get('/leave-balance', fn() => view('employee.leave-balance')->with(session()->all()))->name('employee.leave_balance');
 });
 
- /*
+/*
 |--------------------------------------------------------------------------
 | Admin Routes
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->group(function () {
     Route::get('/dashboard', fn() => view('admin.admin_dashboard')->with(session()->all()))->name('admin.dashboard');
-    Route::get('/manage-employees', fn() => view('admin.manage-employees')->with(session()->all()))->name('admin.manage_employees');
+    
+    // FIXED: Use the controller instead of direct view
+    Route::get('/manage-employees', [UserListController::class, 'index'])->name('admin.manage_employees');
+    
     Route::get('/add-user', fn() => view('admin.add-user')->with(session()->all()))->name('admin.add_user');
 
     // Edit user
@@ -79,10 +82,9 @@ Route::prefix('admin')->group(function () {
     Route::post('/users', [AdminController::class, 'storeUser'])->name('admin.store-user');
 
     Route::post('/admin/add-user', [AddUserController::class, 'createUser'])
-    ->name('admin.add_user.post');
+        ->name('admin.add_user.post');
 
     Route::get('/requests', fn() => view('admin.requests')->with(session()->all()))->name('admin.requests');
-     
 });
 
 /*
@@ -93,18 +95,18 @@ Route::prefix('admin')->group(function () {
 Route::prefix('superuser')->group(function () {
     // Dashboard with real data using the new controller
     Route::get('/dashboard', [SUDashboardController::class, 'index'])->name('su.dashboard');
-    
+
     Route::get('/create-admin', fn() => view('su.create_admin')->with(session()->all()))->name('su.create_admin');
-    
+
     // Admin List - Using UserListController
     Route::get('/admin-list', [UserListController::class, 'index'])->name('su.admin.list');
-    
+
     // Edit Admin
     Route::get('/admin-list/edit/{id}', [UserListController::class, 'edit'])->name('su.admin.edit');
-    
+
     // Update Admin
     Route::put('/admin-list/update/{id}', [UserListController::class, 'update'])->name('su.admin.update');
-    
+
     // Superuser creating admin
     Route::post('/create-admin', [AddUserController::class, 'createUser'])
         ->name('su.create_admin.post');
