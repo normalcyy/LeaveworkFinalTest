@@ -160,3 +160,4 @@ CREATE TABLE companies (
 - When creating admin/employee, validate that company exists in `companies` table
 - Statistics will be calculated by joining `companies` with `users` table
 
+

@@ -143,3 +143,4 @@
 - Company creation can be simple (just name) or detailed (with address, etc.)
 - Consider if companies need their own table or if current approach (stored in users table) is sufficient
 
+

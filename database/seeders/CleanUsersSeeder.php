@@ -134,3 +134,4 @@ class CleanUsersSeeder extends Seeder
     }
 }
 
+

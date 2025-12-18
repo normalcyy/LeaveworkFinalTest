@@ -232,3 +232,4 @@ Route::prefix('superuser')->group(function () {
 - Handle edge cases (admin with employees, pending requests, etc.)
 - Ensure proper authorization (only superuser can manage admins)
 
+
